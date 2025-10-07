@@ -6,8 +6,9 @@ from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
+from rich.table import Table
 
-from swim_data_tool.api import USASwimmingAPI
+from swim_data_tool.api import USASwimmingAPI, TeamInfo
 from swim_data_tool.version import __version__
 
 console = Console()
@@ -79,10 +80,114 @@ class InitCommand:
             border_style="green"
         ))
 
+    def _suggest_team_code(self, club_name: str) -> str:
+        """Suggest a team code based on club name patterns.
+        
+        Args:
+            club_name: Full club name
+            
+        Returns:
+            Suggested team code (without LSC prefix) or empty string
+        """
+        # Common patterns to extract abbreviations
+        words = club_name.upper().split()
+        
+        # Look for common abbreviations or first word
+        if len(words) >= 2:
+            # Take first letter of first few words or first significant word
+            # Skip common words
+            skip_words = {"THE", "OF", "AND", "&"}
+            significant_words = [w for w in words if w not in skip_words]
+            
+            if significant_words:
+                first_word = significant_words[0]
+                
+                # Common patterns
+                if "AQUATIC" in club_name.upper():
+                    # e.g., "South West Aquatic Sports" -> could be SWAS or SWA
+                    # Take initials of first 2-3 words before AQUATIC
+                    initials = "".join(w[0] for w in significant_words if w != "AQUATIC")[:4]
+                    return initials if len(initials) >= 2 else first_word
+                else:
+                    # Return first significant word
+                    return first_word
+        
+        return ""
+    
+    def _interactive_team_search(self) -> TeamInfo | None:
+        """Interactive team search via swimmer name.
+        
+        Instead of searching teams (which can be heavy), we search for
+        a swimmer from the team and extract team info from their swims.
+        
+        Returns:
+            Selected TeamInfo or None if cancelled
+        """
+        while True:
+            swimmer_name = Prompt.ask(
+                "\n[cyan]Enter a swimmer's name from this team[/cyan]",
+                default=""
+            )
+            
+            if not swimmer_name:
+                return None
+            
+            console.print("\n[dim]Searching for swimmer...[/dim]")
+            
+            teams = self.api.search_swimmer_for_team(swimmer_name)
+            
+            if not teams:
+                console.print("[yellow]No swimmer found with that name.[/yellow]")
+                console.print("[dim]Try a different spelling or search for a current registered swimmer[/dim]")
+                if not Confirm.ask("Search again?", default=True):
+                    return None
+                continue
+            
+            # Display results in a table
+            if len(teams) > 1:
+                console.print(f"[yellow]Note: This swimmer is registered with {len(teams)} club(s). Select the correct one:[/yellow]\n")
+            
+            table = Table(title=f"Found {len(teams)} club(s) for this swimmer")
+            table.add_column("#", style="cyan", width=3)
+            table.add_column("Team Code", style="green", width=10)
+            table.add_column("Team Name", style="green")
+            table.add_column("LSC", style="blue", width=6)
+            
+            for idx, team in enumerate(teams, 1):
+                table.add_row(
+                    str(idx),
+                    team.team_code,  # Show the actual team code first!
+                    team.team_name,
+                    team.lsc_code,
+                )
+            
+            console.print()
+            console.print(table)
+            console.print()
+            
+            # Let user select
+            selection = Prompt.ask(
+                "[cyan]Select team number, 's' to search again, or 'c' to cancel[/cyan]",
+                default="1"
+            )
+            
+            if selection.lower() == 'c':
+                return None
+            elif selection.lower() == 's':
+                continue
+            
+            try:
+                idx = int(selection) - 1
+                if 0 <= idx < len(teams):
+                    return teams[idx]
+                else:
+                    console.print("[yellow]Invalid selection. Please try again.[/yellow]")
+            except ValueError:
+                console.print("[yellow]Invalid input. Please enter a number, 's', or 'c'.[/yellow]")
+
     def _collect_team_info(self, teams: list) -> dict:
         """Collect team information from user."""
-        console.print("[yellow]No automatic team discovery available yet.[/yellow]")
-        console.print("Please enter team information manually:\n")
+        console.print("Please enter team information:\n")
 
         # Collect basic info
         club_name = Prompt.ask("Full club name", default=self.team_name)
@@ -91,10 +196,43 @@ class InitCommand:
 
         console.print()
 
-        # USA Swimming info
-        team_code = Prompt.ask("USA Swimming team code (e.g., AZ FORD)")
-        lsc_code = Prompt.ask("LSC code (e.g., AZ)")
-        lsc_name = Prompt.ask("LSC name (e.g., Arizona Swimming)")
+        # USA Swimming info with search option
+        console.print("[dim]Enter '?' to search for team (via swimmer name)[/dim]")
+        console.print("[dim]Or enter team code directly (e.g., SWAS, FORD, NOVA)[/dim]")
+        
+        # Suggest a team code based on the club name
+        suggested_code = self._suggest_team_code(club_name)
+        if suggested_code:
+            console.print(f"[dim]Suggested based on club name: {suggested_code}[/dim]")
+        
+        team_code = Prompt.ask(
+            "USA Swimming team code (or '?' to search)", 
+            default=suggested_code if suggested_code else ""
+        )
+        
+        # Handle search request
+        if team_code == "?":
+            selected_team = self._interactive_team_search()
+            if selected_team:
+                console.print(f"\n[green]✓ Selected: {selected_team.team_name}[/green]")
+                team_code = selected_team.team_code
+                lsc_code = selected_team.lsc_code
+                lsc_name = selected_team.lsc_name
+                
+                # Confirm or override
+                if not Confirm.ask("\nUse this team's information?", default=True):
+                    console.print("[yellow]Please enter team information manually:[/yellow]\n")
+                    team_code = Prompt.ask("USA Swimming team code (e.g., AZ FORD)")
+                    lsc_code = Prompt.ask("LSC code (e.g., AZ)")
+                    lsc_name = Prompt.ask("LSC name (e.g., Arizona Swimming)")
+            else:
+                console.print("[yellow]Search cancelled. Please enter manually:[/yellow]\n")
+                team_code = Prompt.ask("USA Swimming team code (e.g., AZ FORD)")
+                lsc_code = Prompt.ask("LSC code (e.g., AZ)")
+                lsc_name = Prompt.ask("LSC name (e.g., Arizona Swimming)")
+        else:
+            lsc_code = Prompt.ask("LSC code (e.g., AZ)")
+            lsc_name = Prompt.ask("LSC name (e.g., Arizona Swimming)")
 
         console.print()
 

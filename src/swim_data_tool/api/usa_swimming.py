@@ -32,7 +32,7 @@ class USASwimmingAPI:
     BASE_URL = "https://usaswimming.sisense.com/api/datasources/USA%20Swimming%20Times%20Elasticube/jaql"  # noqa: E501
 
     # Public API token (captured from network traffic)
-    AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiNjRhZjE4MGY5Nzg1MmIwMDJkZTU1ZDhkIiwiYXBpU2VjcmV0IjoiZGQxZjU3ZTgtNTgxYy04OWU5LTgxZTUtMTE5MDZjMTRlZmRlIiwiYWxsb3dlZFRlbmFudHMiOlsiNjRhYzE5ZTEwZTkxNzgwMDFiYzM5YmVhIl0sInRlbmFudElkIjoiNjRhYzE5ZTEwZTkxNzgwMDFiYzM5YmVhIn0.z3etpHoiXSqsrXYzNCDG1oLn-irbnfJvPeI4HDMZiCU"  # noqa: E501
+    AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiNjRhZjE4MGY5Nzg1MmIwMDJkZTU1ZDhkIiwiYXBpU2VjcmV0IjoiMzZhZmIyOWUtYTc0ZC00YWVmLWE2YmQtMDA3MzA5ZTYwZTdkIiwiYWxsb3dlZFRlbmFudHMiOlsiNjRhYzE5ZTEwZTkxNzgwMDFiYzM5YmVhIl0sInRlbmFudElkIjoiNjRhYzE5ZTEwZTkxNzgwMDFiYzM5YmVhIn0.fFw6p06oYT6cv-NbhlxHp7-_UpEueGFQaU4N0iEGGlU"  # noqa: E501
 
     def __init__(self):
         """Initialize the API client."""
@@ -365,18 +365,273 @@ class USASwimmingAPI:
 
         return pd.DataFrame()
 
-    def search_team(self, team_name: str) -> list[TeamInfo]:
-        """Search for teams by name.
+    def search_swimmer_for_team(self, swimmer_name: str) -> list[TeamInfo]:
+        """Search for a swimmer and extract their team information.
+        
+        Two-step process:
+        1. Find swimmer(s) by name using Public Person Search
+        2. Query their recent swims to get actual team code
+        
+        Args:
+            swimmer_name: Full or partial swimmer name (e.g., "John Smith" or just "Smith")
+            
+        Returns:
+            List of TeamInfo objects from matched swimmers' recent swims
+        """
+        # STEP 1: Find swimmer PersonKey(s) by name
+        # Split name into parts for better matching
+        name_parts = swimmer_name.strip().split()
+        
+        # Build metadata for person search
+        metadata = [
+            {"jaql": {"title": "Name", "dim": "[Persons.FullName]", "datatype": "text"}},
+            {"jaql": {"title": "PersonKey", "dim": "[Persons.PersonKey]", "datatype": "numeric"}},
+        ]
+        
+        # Add name filter
+        if len(name_parts) >= 2:
+            # Split into first and last name
+            first_name = name_parts[0]
+            last_name = " ".join(name_parts[1:])
+            metadata.append({
+                "jaql": {
+                    "title": "FirstAndPreferredName",
+                    "dim": "[Persons.FirstAndPreferredName]",
+                    "datatype": "text",
+                    "filter": {"contains": first_name}
+                },
+                "panel": "scope"
+            })
+            metadata.append({
+                "jaql": {
+                    "title": "LastName",
+                    "dim": "[Persons.LastName]",
+                    "datatype": "text",
+                    "filter": {"contains": last_name}
+                },
+                "panel": "scope"
+            })
+        else:
+            # Just search by full name or last name
+            metadata.append({
+                "jaql": {
+                    "title": "LastName",
+                    "dim": "[Persons.LastName]",
+                    "datatype": "text",
+                    "filter": {"contains": swimmer_name}
+                },
+                "panel": "scope"
+            })
+        
+        payload = {
+            "metadata": metadata,
+            "datasource": "Public Person Search",
+            "by": "ComposeSDK",
+            "queryGuid": "person-search-for-team",
+            "count": 50,  # Get multiple matches in case of common names
+        }
+        
+        try:
+            response = self.session.post(
+                "https://usaswimming.sisense.com/api/datasources/Public%20Person%20Search/jaql",
+                json=payload
+            )
+            
+            if response.status_code != 200:
+                return []
+            
+            results = response.json()
+            
+            if not results or "values" not in results or not results["values"]:
+                return []
+            
+            # Extract PersonKeys from Step 1
+            # Results format: [0]=Name, [1]=PersonKey
+            person_keys = []
+            for row in results["values"]:
+                person_key = row[1]
+                if isinstance(person_key, dict):
+                    person_key = person_key.get("data", person_key.get("text"))
+                person_keys.append(int(person_key))
+            
+            if not person_keys:
+                return []
+            
+            # STEP 2: Query recent swims for each PersonKey to get team info
+            teams_dict = {}
+            
+            for person_key in person_keys[:10]:  # Limit to first 10 matches to avoid overload
+                # Build metadata for team lookup from swims
+                team_metadata = [
+                    {"jaql": {"title": "TeamCode", "dim": "[OrgUnit.Level4Code]", "datatype": "text"}},
+                    {"jaql": {"title": "TeamName", "dim": "[OrgUnit.Level4Name]", "datatype": "text"}},
+                    {"jaql": {"title": "LSC_Code", "dim": "[OrgUnit.Level3Code]", "datatype": "text"}},
+                    {"jaql": {"title": "LSC_Name", "dim": "[OrgUnit.Level3Name]", "datatype": "text"}},
+                    {
+                        "jaql": {
+                            "title": "PersonKey",
+                            "dim": "[UsasSwimTime.PersonKey]",
+                            "datatype": "numeric",
+                            "filter": {"equals": person_key}
+                        },
+                        "panel": "scope"
+                    },
+                    {
+                        "jaql": {
+                            "title": "SeasonYearDesc",
+                            "dim": "[SeasonCalendar.SeasonYearDesc]",
+                            "datatype": "text",
+                            "filter": {"members": ["2025 (9/1/2024 - 8/31/2025)"]}  # Current season only
+                        },
+                        "panel": "scope"
+                    }
+                ]
+                
+                team_payload = {
+                    "metadata": team_metadata,
+                    "datasource": "USA Swimming Times Elasticube",
+                    "by": "ComposeSDK",
+                    "queryGuid": "team-lookup-from-swims",
+                    "count": 10,
+                }
+                
+                team_response = self.session.post(self.BASE_URL, json=team_payload)
+                
+                if team_response.status_code != 200:
+                    continue
+                
+                team_results = team_response.json()
+                
+                if not team_results or "values" not in team_results or not team_results["values"]:
+                    continue
+                
+                # Extract teams from swim results
+                # Format: [0]=TeamCode, [1]=TeamName, [2]=LSC_Code, [3]=LSC_Name
+                for row in team_results["values"]:
+                    team_code = row[0]["text"] if isinstance(row[0], dict) else row[0]
+                    team_name = row[1]["text"] if isinstance(row[1], dict) else row[1]
+                    lsc_code = row[2]["text"] if isinstance(row[2], dict) else row[2]
+                    lsc_name = row[3]["text"] if isinstance(row[3], dict) else row[3]
+                    
+                    # Use team code + LSC as unique key
+                    key = f"{team_code}|{lsc_code}"
+                    
+                    if key not in teams_dict:
+                        teams_dict[key] = TeamInfo(
+                            team_code=team_code,
+                            team_name=team_name,
+                            lsc_code=lsc_code,
+                            lsc_name=lsc_name,
+                        )
+            
+            return list(teams_dict.values())
+            
+        except Exception:
+            return []
+    
+    def search_team(self, team_name: str, lsc_code: str | None = None) -> list[TeamInfo]:
+        """Search for teams by name in USA Swimming database.
 
         Args:
             team_name: Full or partial team name to search for
+            lsc_code: Optional LSC code to narrow search (e.g., "AZ")
 
         Returns:
             List of matching teams with their information
-
-        Note:
-            Not yet implemented - requires scraping team listings.
-            For now, return empty list to trigger manual entry.
         """
-        # TODO: Implement team search
-        return []
+        # Query recent years to find active teams (expanded to 5 years for better coverage)
+        current_year = 2025
+        search_years = [str(y) for y in range(current_year - 4, current_year + 1)]  # 2021-2025
+        
+        # Build year members with correct format (spaces for years < 2026)
+        year_members = []
+        for year_str in search_years:
+            year_int = int(year_str)
+            # 2026+ has no spaces, earlier years have spaces
+            separator = "-" if year_int >= 2026 else " - "
+            year_members.append(f"{year_str} (9/1/{year_int-1}{separator}8/31/{year_str})")
+        
+        # Build metadata for team search
+        metadata = [
+            {
+                "jaql": {
+                    "title": "Team",
+                    "dim": "[OrgUnit.Level4Name]",
+                    "datatype": "text",
+                    "filter": {
+                        "contains": team_name
+                    }
+                }
+            },
+            {
+                "jaql": {
+                    "title": "LSC",
+                    "dim": "[OrgUnit.Level3Code]",
+                    "datatype": "text",
+                }
+            },
+            {
+                "jaql": {
+                    "title": "LSC_Name",
+                    "dim": "[OrgUnit.Level3Name]",
+                    "datatype": "text",
+                }
+            },
+            {
+                "jaql": {
+                    "title": "SeasonYearDesc",
+                    "dim": "[SeasonCalendar.SeasonYearDesc]",
+                    "datatype": "text",
+                    "filter": {
+                        "members": year_members
+                    }
+                },
+                "panel": "scope"
+            }
+        ]
+        
+        # Add LSC filter if provided
+        if lsc_code:
+            metadata[1]["jaql"]["filter"] = {"equals": lsc_code.upper()}
+        
+        payload = {
+            "metadata": metadata,
+            "datasource": "USA Swimming Times Elasticube",
+            "by": "ComposeSDK",
+            "queryGuid": "team-search-query",
+            "count": 100,
+        }
+        
+        try:
+            response = self.session.post(self.BASE_URL, json=payload)
+            
+            if response.status_code != 200:
+                return []
+            
+            results = response.json()
+            
+            if not results or "values" not in results:
+                return []
+            
+            # Process results into unique teams
+            teams_dict = {}
+            for row in results["values"]:
+                team_name_val = row[0]["text"] if isinstance(row[0], dict) else row[0]
+                lsc_code_val = row[1]["text"] if isinstance(row[1], dict) else row[1]
+                lsc_name_val = row[2]["text"] if isinstance(row[2], dict) else row[2]
+                
+                # Use team name + LSC as unique key
+                key = f"{team_name_val}|{lsc_code_val}"
+                
+                if key not in teams_dict:
+                    teams_dict[key] = TeamInfo(
+                        team_code=f"{lsc_code_val} {team_name_val.split()[0].upper()}",  # Estimate
+                        team_name=team_name_val,
+                        lsc_code=lsc_code_val,
+                        lsc_name=lsc_name_val,
+                    )
+            
+            return list(teams_dict.values())
+            
+        except Exception:
+            return []

@@ -1,118 +1,109 @@
-# swim-data-tool
+# South West Aquatic Sports - Records & Statistics
 
-[![CI](https://github.com/aaryno/swim-data-tool/actions/workflows/ci.yml/badge.svg)](https://github.com/aaryno/swim-data-tool/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/aaryno/swim-data-tool/branch/main/graph/badge.svg)](https://codecov.io/gh/aaryno/swim-data-tool)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+Private analysis repository for **South West Aquatic Sports** (SWAS) swim team records and statistics.
 
-A modern CLI tool for swim team record management.
+## Overview
 
-**Current Version:** 0.2.0
+**Team Code:** SWAS  
+**LSC:** Arizona Swimming (AZ)  
+**SwimCloud ID:** 10012795
 
-## Status
+This repository contains historical swim data, records analysis, and statistics for SWAS.
 
-✅ **v0.2.0 Released** - Import commands fully implemented!
+## Tools
 
-- ✅ `init` - Initialize team repositories with configuration
-- ✅ `status` - View current status
-- ✅ `config` - View configuration
-- ✅ `import swimmer` - Download single swimmer data
-- ✅ `import swimmers` - Batch download swimmer data
-- 🚧 `classify` - Coming in v0.3.0
-- 🚧 `generate` - Coming in v0.4.0
+This repository uses [swim-data-tool](https://github.com/aaryno/swim-data-tool) for data collection and processing.
 
-## Features
+**Tool Version:** 0.4.0
 
-- 🏊 **Team Initialization**: Set up new team repositories with proper structure
-- 📊 **Record Generation**: Automatically generate team records by course, age group, and event *(coming soon)*
-- 🔍 **Swim Classification**: Classify unattached swims (probationary, college, etc.) *(coming soon)*
-- 📈 **Analysis**: Generate top 10 lists and annual summaries *(coming soon)*
-- 🎨 **Beautiful CLI**: Rich terminal output with progress indicators
-- ⚡ **Fast**: Built with modern Python and uv package manager
-
-## Installation
+### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/aaryno/swim-data-tool.git
-cd swim-data-tool
-
-# Create virtual environment with uv
-uv venv
+# Install swim-data-tool
+cd ~/swimming/swim-data-tool
 source .venv/bin/activate
-
-# Install with dev dependencies
-uv sync --dev
-
-# Run the tool
-uv run swim-data-tool --help
 ```
 
-## Quick Start
-
-### Initialize a New Team Repository
+### Usage
 
 ```bash
-# Navigate to where you want to create the team directory
-cd ~/swimming
-
-# Create and navigate to team directory
-mkdir my-team
-cd my-team
-
-# Initialize the team repository
-swim-data-tool init "My Swim Team Name"
-
-# Follow the interactive prompts to enter:
-# - Team code
-# - LSC information
-# - SwimCloud ID (optional)
-# - Data collection years
-
-# Review configuration
-swim-data-tool config
+# Navigate to this repository
+cd ~/swimming/south-west-aquatic-sports
 
 # Check status
 swim-data-tool status
+
+# Import swimmer data
+swim-data-tool import swimmers --src=usa-swimming
+
+# Generate records
+swim-data-tool generate records
 ```
 
-This creates:
-- `.env` - Team configuration
-- `README.md` - Team documentation
-- `claude.md` - AI assistant context
-- `.gitignore` - Git ignore patterns
-- `data/` directory structure with proper subdirectories
-- `.swim-data-tool-version` - Tool version tracking
+## Directory Structure
 
-## Commands
+```
+south-west-aquatic-sports/
+├── .env                        # Configuration (NOT committed)
+├── README.md                   # This file
+├── claude.md                   # AI assistant context
+├── data/
+│   ├── raw/                    # Raw data from APIs (NOT committed)
+│   ├── processed/              # Processed data (NOT committed)
+│   ├── records/                # Generated records (committed)
+│   ├── reports/                # Analysis reports (committed)
+│   └── lookups/                # Reference data (committed)
+└── logs/                       # Processing logs (NOT committed)
+```
 
-### Working Commands (v0.2.0)
+## Data Sources
 
-- ✅ `init <team-name>` - Initialize a new team repository
-- ✅ `status` - Show current status and configuration
-- ✅ `config` - View configuration from .env file
-- ✅ `import swimmer <person-key>` - Download single swimmer career data
-- ✅ `import swimmers --file=<csv>` - Batch download swimmers from CSV file
+- **USA Swimming:** Swimmer profiles, meet results
+- **SwimCloud:** Team information, meet results
+- **World Aquatics:** International competition results
 
-### Coming Soon
+## Privacy
 
-- 🚧 `classify unattached` - Classify swim types (v0.3.0)
-- 🚧 `generate records` - Generate team records (v0.4.0)
-- 🚧 `publish` - Publish records to public repo (v0.5.0)
+**⚠️ This is a PRIVATE repository**
+
+- Contains PII (names, DOB, PersonKeys)
+- Raw data is NOT committed to git
+- Only aggregate records are public
+
+## Records Publication
+
+Public records are published to: {{PUBLIC_REPO_URL}}
+
+## Commands Reference
+
+```bash
+# Show current configuration
+swim-data-tool config
+
+# Import all swimmers
+swim-data-tool import swimmers --src=usa-swimming
+
+# Import specific swimmer
+swim-data-tool import swimmer "First Last"
+
+# Classify unattached swims
+swim-data-tool classify unattached
+
+# Generate records
+swim-data-tool generate records --course=all
+swim-data-tool generate top10
+swim-data-tool generate annual-summary --season=2026
+
+# Publish records to public repo
+swim-data-tool publish records
+```
 
 ## Development
 
-```bash
-# Install development dependencies
-uv sync --dev
+See `claude.md` for detailed context and workflows for AI assistants.
 
-# Run tests
-uv run pytest
+---
 
-# Run linting
-uv run ruff check .
-```
+**Generated by:** swim-data-tool v0.4.0  
+**Initialized:** 2025-10-07
 
-## License
-
-MIT

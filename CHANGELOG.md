@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.4.0] - 2025-10-07
+
+### Added
+- **Implemented `generate records` command** for creating team records
+  - Generates records by course (SCY, LCM, SCM)
+  - Records organized by age group (10U, 11-12, 13-14, 15-16, 17-18, Open)
+  - Markdown output with formatted tables
+  - Course filtering with `--course` option
+  - Probationary swim indicators (‡)
+  - Saves to `data/records/{course}/records.md`
+- **Event definitions module** (`models/events.py`)
+  - SCY, LCM, SCM event lists
+  - Age group mappings
+  - Event parsing and formatting utilities
+  - Time conversion functions
+- **Record generation service** (`services/record_generator.py`)
+  - Load swimmer data from raw and processed directories
+  - Filter team-affiliated swims
+  - Parse and normalize event data
+  - Calculate best times per age group/event
+  - Generate formatted markdown reports
+
+### Changed
+- Enhanced data processing pipeline to support record generation
+- Added automatic course-based directory structure for records
+
+## [0.3.0] - 2025-10-07
+
+### Added
+- **Implemented `classify unattached` command** for swim classification
+  - Classifies unattached swims as probationary or team-unattached
+  - Probationary: Unattached swims BEFORE joining team, AFTER another club
+  - Team-unattached: Unattached swims AFTER joining team
+  - Progress tracking with JSON log (resumable)
+  - Rich progress bars during classification
+  - Saves to `data/processed/unattached/probationary/` and `.../team-unattached/`
+
+### Changed
+- Enhanced classification logic based on proven ford implementation
+- Automatic directory creation for processed data
+
 ## [0.2.0] - 2025-10-07
 
 ### Added

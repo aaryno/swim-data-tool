@@ -109,5 +109,54 @@ def import_swimmers(ctx: click.Context, file: str | None, dry_run: bool) -> None
     cmd.run()
 
 
+@main.group()
+def classify() -> None:
+    """Classify and organize swim data."""
+    pass
+
+
+@classify.command(name="unattached")
+@click.pass_context
+def classify_unattached(ctx: click.Context) -> None:
+    """Classify unattached swims as probationary or team-unattached.
+
+    \b
+    Examples:
+        swim-data-tool classify unattached
+    """
+    from swim_data_tool.commands.classify import ClassifyUnattachedCommand
+
+    cmd = ClassifyUnattachedCommand(ctx.obj["cwd"])
+    cmd.run()
+
+
+@main.group()
+def generate() -> None:
+    """Generate records and reports."""
+    pass
+
+
+@generate.command(name="records")
+@click.option(
+    "--course",
+    type=click.Choice(["scy", "lcm", "scm"], case_sensitive=False),
+    help="Generate records for specific course (default: all)",
+)
+@click.pass_context
+def generate_records(ctx: click.Context, course: str | None) -> None:
+    """Generate team records from swim data.
+
+    \b
+    Examples:
+        swim-data-tool generate records
+        swim-data-tool generate records --course=scy
+        swim-data-tool generate records --course=lcm
+    """
+    from swim_data_tool.commands.generate import GenerateRecordsCommand
+
+    cmd = GenerateRecordsCommand(ctx.obj["cwd"], course)
+    cmd.run()
+
+
 if __name__ == "__main__":
     main()

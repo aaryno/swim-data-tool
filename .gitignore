@@ -1,36 +1,49 @@
+# swim-data-tool - Team Repository .gitignore
+
+# Environment and configuration
+.env
+.env.local
+.env.*.local
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-*.egg
 *.egg-info/
 dist/
 build/
-wheels/
-
-# Virtual environments
+*.egg
 .venv/
 venv/
-env/
 ENV/
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
+# Logs
+*.log
+logs/
+*.txt
 
-# Type checking
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# Temporary files
+*.tmp
+.DS_Store
+Thumbs.db
 
-# Linting
-.ruff_cache/
+# Data files (protect PII)
+data/raw/
+data/processed/
+data/temp/
 
-# IDEs
+# Keep directory structure but ignore contents
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/lookups/.gitkeep
+!data/reports/.gitkeep
+
+# Allow records to be committed (public data)
+!data/records/
+
+# IDE
 .vscode/
 .idea/
 *.swp
@@ -39,24 +52,10 @@ dmypy.json
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# uv
-uv.lock
-
-# Environment
-.env
-.env.local
-
-# Logs
-*.log
-logs/
-
-# Temporary
-temp/
-tmp/
-*.tmp
-
-# Artifacts (AI-generated docs, allow README only)
-artifacts/*
-!artifacts/README.md
