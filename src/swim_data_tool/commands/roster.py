@@ -62,20 +62,42 @@ class RosterCommand:
             return
 
         # Display results
-        console.print(f"[green]✓ Found {len(roster_df)} swimmers[/green]\n")
+        console.print(f"[green]✓ Found {len(roster_df)} swimmers[/green]")
+        
+        # Count genders (filter out relays with PersonKey=0)
+        if "Gender" in roster_df.columns:
+            gender_counts = roster_df[roster_df["PersonKey"] != 0]["Gender"].value_counts()
+            males = gender_counts.get('M', 0)
+            females = gender_counts.get('F', 0)
+            if males > 0 or females > 0:
+                console.print(f"[green]✓ Gender data: {males} males, {females} females[/green]\n")
+            else:
+                console.print("[yellow]⚠ No gender data found in results[/yellow]\n")
+        else:
+            console.print("[yellow]⚠ Gender column not available[/yellow]\n")
 
         # Show preview table
         table = Table(title="Team Roster Preview (first 20)")
         table.add_column("PersonKey", style="cyan")
         table.add_column("Name", style="green")
+        table.add_column("Gender", style="magenta", justify="center")
         table.add_column("First Swim", style="dim")
         table.add_column("Last Swim", style="yellow")
         table.add_column("Swims", justify="right", style="blue")
 
         for _, row in roster_df.head(20).iterrows():
+            gender_display = row.get("Gender", "")
+            if gender_display == "M":
+                gender_display = "M"
+            elif gender_display == "F":
+                gender_display = "F"
+            else:
+                gender_display = "?"
+            
             table.add_row(
                 str(row["PersonKey"]),
                 row["FullName"],
+                gender_display,
                 str(row["FirstSwimDate"]),
                 str(row["LastSwimDate"]),
                 str(row["SwimCount"]),
@@ -109,5 +131,6 @@ Example:
         console.print(Panel(
             next_steps,
             title="Next Steps",
-            border_style="green"
+            border_style="green",
+            expand=False
         ))

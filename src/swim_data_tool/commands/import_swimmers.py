@@ -25,10 +25,11 @@ console = Console()
 class ImportSwimmersCommand:
     """Import career data for multiple swimmers from a CSV file."""
 
-    def __init__(self, cwd: Path, csv_file: str | None, dry_run: bool):
+    def __init__(self, cwd: Path, csv_file: str | None, dry_run: bool, force: bool = False):
         self.cwd = cwd
         self.csv_file = csv_file
         self.dry_run = dry_run
+        self.force = force
         self.api = USASwimmingAPI()
 
     def run(self) -> None:
@@ -65,6 +66,13 @@ class ImportSwimmersCommand:
             )
             swimmers_df["FullName"] = swimmers_df["PersonKey"].astype(str)
         
+        # Create gender map if Gender column exists in roster
+        gender_map = {}
+        if "Gender" in swimmers_df.columns:
+            for _, row in swimmers_df.iterrows():
+                if row["PersonKey"] != 0 and row.get("Gender"):
+                    gender_map[int(row["PersonKey"])] = row["Gender"]
+        
         # Filter out relay entries (PersonKey=0) and only-relay swimmers
         # TODO: Future enhancement - recognize individuals in relay results
         #       When generating team records, top 10 lists, or annual analysis,
@@ -89,8 +97,12 @@ class ImportSwimmersCommand:
         console.print(f"  Years: {start_year}-{end_year}")
         console.print(f"  Output: {swimmers_dir}\n")
 
-        # Check existing files
-        existing = self._get_existing_swimmer_files(swimmers_dir)
+        # Check existing files (unless force mode)
+        if self.force:
+            existing = set()
+            console.print("  [yellow]Force mode: Will re-download all swimmers[/yellow]\n")
+        else:
+            existing = self._get_existing_swimmer_files(swimmers_dir)
 
         # Determine what to download
         to_download = []
@@ -179,6 +191,10 @@ class ImportSwimmersCommand:
                         progress.update(task, description=f"[cyan]Downloading: {name[:30]} (avg: {avg_time:.1f}s/swimmer)")
 
                     if not df.empty:
+                        # Add Gender column if we have gender data
+                        if gender_map and person_key in gender_map:
+                            df["Gender"] = gender_map[person_key]
+                        
                         safe_name = self._sanitize_filename(name)
                         filename = swimmers_dir / f"{safe_name}-{person_key}.csv"
                         df.to_csv(filename, index=False)
@@ -230,7 +246,8 @@ class ImportSwimmersCommand:
         console.print(Panel(
             next_steps,
             title="Next Steps",
-            border_style="green"
+            border_style="green",
+            expand=False
         ))
 
     def _get_existing_swimmer_files(self, swimmers_dir: Path) -> set[int]:

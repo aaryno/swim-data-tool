@@ -123,8 +123,9 @@ def import_swimmer(ctx: click.Context, person_key: int) -> None:
 @import_cmd.command(name="swimmers")
 @click.option("--file", type=click.Path(exists=True), help="CSV file with PersonKeys (default: data/lookups/roster.csv)")
 @click.option("--dry-run", is_flag=True, help="Show what would be downloaded")
+@click.option("--force", is_flag=True, help="Re-download all swimmers (overwrite existing files)")
 @click.pass_context
-def import_swimmers(ctx: click.Context, file: str | None, dry_run: bool) -> None:
+def import_swimmers(ctx: click.Context, file: str | None, dry_run: bool, force: bool) -> None:
     """Import career data for multiple swimmers.
 
     \b
@@ -135,7 +136,7 @@ def import_swimmers(ctx: click.Context, file: str | None, dry_run: bool) -> None
     """
     from swim_data_tool.commands.import_swimmers import ImportSwimmersCommand
 
-    cmd = ImportSwimmersCommand(ctx.obj["cwd"], file, dry_run)
+    cmd = ImportSwimmersCommand(ctx.obj["cwd"], file, dry_run, force)
     cmd.run()
 
 

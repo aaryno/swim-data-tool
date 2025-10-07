@@ -313,6 +313,15 @@ class USASwimmingAPI:
                             if "UsasSwimTimeKey" in df.columns
                             else df
                         )
+                        # Extract Gender from EventCompetitionCategoryKey
+                        # USA Swimming separates events by gender: 1 = Female, 2 = Male
+                        # API returns values as strings
+                        if "EventCompetitionCategoryKey" in combined.columns:
+                            combined["Gender"] = combined["EventCompetitionCategoryKey"].map({
+                                "1": "F", "2": "M", 1: "F", 2: "M"
+                            }).fillna("")
+                        else:
+                            combined["Gender"] = ""
                         return combined
         except Exception:
             pass  # Fall back to chunked approach
@@ -361,6 +370,17 @@ class USASwimmingAPI:
             combined = pd.concat(all_swims, ignore_index=True)
             if "UsasSwimTimeKey" in combined.columns:
                 combined = combined.drop_duplicates(subset=["UsasSwimTimeKey"])
+            
+            # Extract Gender from EventCompetitionCategoryKey
+            # USA Swimming separates events by gender: 1 = Female, 2 = Male
+            # API returns values as strings
+            if "EventCompetitionCategoryKey" in combined.columns:
+                combined["Gender"] = combined["EventCompetitionCategoryKey"].map({
+                    "1": "F", "2": "M", 1: "F", 2: "M"
+                }).fillna("")
+            else:
+                combined["Gender"] = ""
+            
             return combined
 
         return pd.DataFrame()
@@ -561,6 +581,7 @@ class USASwimmingAPI:
         metadata = [
             {"jaql": {"title": "PersonKey", "dim": "[UsasSwimTime.PersonKey]", "datatype": "numeric"}},
             {"jaql": {"title": "FullName", "dim": "[UsasSwimTime.FullName]", "datatype": "text"}},
+            {"jaql": {"title": "EventCompetitionCategoryKey", "dim": "[UsasSwimTime.EventCompetitionCategoryKey]", "datatype": "numeric"}},
             {"jaql": {"title": "SwimDate", "dim": "[SeasonCalendar.CalendarDate (Calendar)]", "datatype": "datetime", "level": "days"}},
             {
                 "jaql": {
@@ -607,8 +628,19 @@ class USASwimmingAPI:
             if df is None or df.empty:
                 return pd.DataFrame()
             
+            # Extract Gender from EventCompetitionCategoryKey before aggregation
+            # USA Swimming separates events by gender: 1 = Female, 2 = Male
+            # API returns values as strings
+            if "EventCompetitionCategoryKey" in df.columns:
+                df["Gender"] = df["EventCompetitionCategoryKey"].map({
+                    "1": "F", "2": "M", 1: "F", 2: "M"
+                }).fillna("")
+            else:
+                df["Gender"] = ""
+            
             # Aggregate by PersonKey to get roster
             roster = df.groupby(["PersonKey", "FullName"]).agg(
+                Gender=("Gender", "first"),  # Take first (should be consistent for each person)
                 FirstSwimDate=("SwimDate", "min"),
                 LastSwimDate=("SwimDate", "max"),
                 SwimCount=("SwimDate", "count")
@@ -734,3 +766,4 @@ class USASwimmingAPI:
             
         except Exception:
             return []
+

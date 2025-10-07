@@ -1,5 +1,56 @@
 # Changelog
 
+## [0.6.2] - 2025-10-07
+
+### Added
+- `--force` flag for `import swimmers` command to re-download all swimmers and overwrite existing files
+- Helper script in scratch directory to add Gender column to existing swimmer CSVs without re-downloading
+
+### Changed
+- Updated documentation to reflect that gender must be added to existing swimmer CSVs before regenerating records
+
+### Notes
+- For existing teams: Add Gender to swimmer CSVs, re-run `classify unattached`, then `generate records`
+- New teams will automatically get Gender column from roster on first import
+
+## [0.6.1] - 2025-10-07
+
+### Fixed
+- **Gender extraction now working correctly**: Extract gender from `EventCompetitionCategoryKey` field in swim data
+  - USA Swimming separates events by gender: 1 = Female, 2 = Male
+  - Gender is now automatically populated in roster and swimmer CSVs
+  - No separate API call needed - gender comes from event data itself
+- Removed unused `get_gender_for_persons()` method that didn't work
+- API returns EventCompetitionCategoryKey as strings, not integers - mapping now handles both
+
+### Technical Details
+- Gender is extracted directly from USA Swimming's event categorization system
+- All events are pre-separated by gender, so every swim record contains gender information
+- This is more reliable than attempting to query a separate gender field
+
+## [0.6.0] - 2025-10-07
+
+### Added
+- **Gender Support**: All commands now fetch and use gender information
+- `USASwimmingAPI.get_gender_for_persons()`: Batch fetch gender from Public Person Search datasource
+- Gender column in roster CSV output
+- Gender statistics in roster command output
+
+### Changed
+- **BREAKING: Record generation now splits by gender**
+  - `generate records` creates separate `records-boys.md` and `records-girls.md` files
+  - `generate top10` creates separate `top10/{course}/boys/` and `top10/{course}/girls/` directories
+  - `generate annual` creates separate `{year}-{course}-boys.md` and `{year}-{course}-girls.md` files
+  - Legacy combined records (no gender) still supported if Gender column missing
+- `roster` command now fetches gender for all swimmers
+- `import swimmers` preserves Gender column in downloaded CSVs
+- Gender statistics displayed during record generation
+
+### Improved
+- Records now properly separate boys/girls times as per USA Swimming standards
+- Clear gender labeling in all generated markdown files
+- Backwards compatible with existing data (falls back to combined records if no gender data)
+
 ## [0.5.0] - 2025-10-07
 
 ### Added

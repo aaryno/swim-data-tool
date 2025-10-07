@@ -197,7 +197,8 @@ class ClassifyUnattachedCommand:
         console.print(Panel(
             next_steps,
             title="Next Steps",
-            border_style="green"
+            border_style="green",
+            expand=False
         ))
 
     def _analyze_swims(self, swimmer_files: list[Path]) -> dict:

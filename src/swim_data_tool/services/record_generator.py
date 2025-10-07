@@ -121,6 +121,21 @@ class RecordGenerator:
         mask = df["Team"].str.contains("|".join(team_names), case=False, na=False)
         return df[mask].copy()
 
+    def filter_by_gender(self, df: pd.DataFrame, gender: str) -> pd.DataFrame:
+        """Filter swims by gender.
+
+        Args:
+            df: DataFrame with swim data
+            gender: "M" for male, "F" for female
+
+        Returns:
+            Filtered DataFrame with only swims matching gender
+        """
+        if df.empty or "Gender" not in df.columns:
+            return df
+
+        return df[df["Gender"] == gender].copy()
+
     def parse_and_normalize_events(self, df: pd.DataFrame) -> pd.DataFrame:
         """Parse event strings and add normalized columns.
 

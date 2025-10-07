@@ -77,7 +77,8 @@ class InitCommand:
         console.print(Panel(
             self._get_next_steps(),
             title="Next Steps",
-            border_style="green"
+            border_style="green",
+            expand=False
         ))
 
     def _suggest_team_code(self, club_name: str) -> str:

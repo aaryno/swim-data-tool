@@ -139,6 +139,12 @@ class PublishCommand:
                 shutil.copy2(src_file, dest_file)
             
             console.print(f"[green]✓[/green] Copied {len(files_to_copy)} files\n")
+            
+            # Generate README.md
+            console.print("[cyan]📝 Creating README.md...[/cyan]")
+            readme_path = local_repo / "README.md"
+            self._generate_readme(readme_path, files_to_copy)
+            console.print(f"[green]✓[/green] README.md created\n")
         else:
             console.print("[dim]Would copy files to public repo[/dim]\n")
             for src_file in files_to_copy[:5]:  # Show first 5
@@ -147,6 +153,7 @@ class PublishCommand:
             if len(files_to_copy) > 5:
                 console.print(f"[dim]  ... and {len(files_to_copy) - 5} more[/dim]")
             console.print()
+            console.print("[dim]Would create/update README.md[/dim]\n")
 
         # Git operations
         if not self.dry_run:
@@ -223,6 +230,115 @@ class PublishCommand:
         console.print(Panel(
             next_steps,
             title="Next Steps",
-            border_style="green"
+            border_style="green",
+            expand=False
         ))
+
+    def _generate_readme(self, readme_path: Path, files_to_copy: list[Path]) -> None:
+        """Generate README.md for the public repository.
+        
+        Args:
+            readme_path: Path to README.md file
+            files_to_copy: List of markdown files being published
+        """
+        # Organize files by course and type
+        records_by_course = {"scy": [], "lcm": [], "scm": []}
+        top10_by_course = {"scy": [], "lcm": [], "scm": []}
+        annual_files = []
+        
+        for file_path in files_to_copy:
+            rel_path = file_path.relative_to(self.records_dir)
+            parts = rel_path.parts
+            
+            if len(parts) >= 2:
+                course = parts[0]
+                filename = parts[-1]
+                
+                if course in records_by_course:
+                    if "top10" in str(rel_path):
+                        top10_by_course[course].append(rel_path)
+                    elif "annual" in filename:
+                        annual_files.append(rel_path)
+                    else:
+                        records_by_course[course].append(rel_path)
+        
+        # Generate README content
+        update_date = datetime.now().strftime("%B %d, %Y")
+        
+        readme_content = f"""# {self.team_name} - Swimming Records
+
+Official team records automatically generated from USA Swimming data.
+
+**Last Updated:** {update_date}
+
+## Team Records
+
+"""
+        
+        # Add records by course
+        for course in ["scy", "lcm", "scm"]:
+            if records_by_course[course]:
+                course_name = {"scy": "Short Course Yards", "lcm": "Long Course Meters", "scm": "Short Course Meters"}[course]
+                readme_content += f"### {course_name} ({course.upper()})\n\n"
+                
+                for file_path in sorted(records_by_course[course]):
+                    filename = file_path.name
+                    if "boys" in filename:
+                        label = "Boys Records"
+                    elif "girls" in filename:
+                        label = "Girls Records"
+                    else:
+                        label = "Team Records"
+                    
+                    readme_content += f"- [{label}](records/{file_path})\n"
+                
+                readme_content += "\n"
+        
+        # Add top 10 if available
+        has_top10 = any(top10_by_course.values())
+        if has_top10:
+            readme_content += "## Top 10 All-Time Lists\n\n"
+            for course in ["scy", "lcm", "scm"]:
+                if top10_by_course[course]:
+                    course_name = {"scy": "Short Course Yards", "lcm": "Long Course Meters", "scm": "Short Course Meters"}[course]
+                    readme_content += f"### {course_name} ({course.upper()})\n\n"
+                    readme_content += f"- [View all {course.upper()} top 10 lists](records/top10/{course}/)\n\n"
+        
+        # Add annual summaries if available
+        if annual_files:
+            readme_content += "## Season Summaries\n\n"
+            for file_path in sorted(annual_files, reverse=True):
+                filename = file_path.stem
+                readme_content += f"- [{filename}](records/{file_path})\n"
+            readme_content += "\n"
+        
+        # Add footer
+        readme_content += f"""---
+
+## About
+
+This repository contains public team records for {self.team_name}. All data is sourced from USA Swimming official results.
+
+**Privacy:** This repository contains no personally identifiable information (PII). Only team records, times, and public results are included.
+
+**Updates:** Records are automatically updated after each meet using [swim-data-tool](https://github.com/aaryno/swim-data-tool).
+
+## Repository Structure
+
+```
+records/
+├── scy/          # Short Course Yards records
+├── lcm/          # Long Course Meters records
+├── scm/          # Short Course Meters records
+├── top10/        # Top 10 all-time performers (if available)
+└── annual/       # Season summaries (if available)
+```
+
+## Contact
+
+For questions about these records, please contact the team administrators.
+"""
+        
+        # Write README
+        readme_path.write_text(readme_content)
 

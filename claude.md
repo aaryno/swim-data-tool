@@ -4,9 +4,9 @@
 
 **swim-data-tool** is a modern Python CLI tool for swim team record management. It provides a unified interface for collecting, processing, and analyzing swim data from USA Swimming and World Aquatics APIs.
 
-**Current Version:** 0.4.5
+**Current Version:** 0.6.2
 
-**Status:** ✅ Production-ready with enhanced UX - init, roster, import, classify, generate all working with consistent formatted output!
+**Status:** ✅ Production-ready with working gender support - All commands extract gender from event data to generate properly separated boys/girls records!
 
 ---
 
@@ -295,7 +295,32 @@ swim-data-tool generate records
 
 ## Version History
 
-### v0.4.5 (Current) - 2025-10-07
+### v0.6.2 (Current) - 2025-10-07
+- ✅ Added `--force` flag to `import swimmers` for re-downloading with overwrites
+- ✅ Helper scripts for adding Gender to existing swimmer CSVs without re-download
+- ✅ Documentation updates for workflow with existing teams
+
+### v0.6.1 - 2025-10-07
+- ✅ **Fixed gender extraction** - Now works correctly by extracting from EventCompetitionCategoryKey
+- ✅ Gender automatically populated in roster and swimmer CSVs
+- ✅ USA Swimming event system separates by gender: 1=Female, 2=Male
+- ✅ More reliable than separate API calls - gender is inherent in event data
+
+### v0.6.0 - 2025-10-07
+- ✅ **Gender support framework** (gender extraction fixed in v0.6.1)
+- ✅ `generate records` creates separate boys/girls files (records-boys.md, records-girls.md)
+- ✅ `generate top10` creates separate boys/girls directories
+- ✅ `generate annual` creates separate boys/girls summaries
+- ✅ Gender statistics displayed in all outputs
+- ✅ Backwards compatible (falls back to combined records if no gender data)
+
+### v0.5.0 - 2025-10-07
+- ✅ `generate top10` command for top N all-time performers
+- ✅ `generate annual` command for season summaries
+- ✅ `publish` command for GitHub repository publishing
+- ✅ Record comparison logic for identifying new records
+
+### v0.4.5 - 2025-10-07
 - ✅ Combined release with roster, UX improvements, and relay handling
 - ✅ Consistent Next Steps panels across ALL commands
 - ✅ Better import statistics with clear breakdown
@@ -804,6 +829,7 @@ All commands follow these UX patterns:
    - Every command shows what to do next in a green-bordered Rich Panel
    - Commands formatted in cyan for easy copy/paste
    - Clear, actionable guidance
+   - **Auto-width:** Use `expand=False` to fit content (prevents terminal wrapping)
    - Example: After `roster`, shows how to `import swimmers` with actual PersonKey
 
 2. **Progress Bars**
@@ -837,13 +863,25 @@ All commands follow these UX patterns:
   Total cached: 184 swimmers
   Average rate: 0.9s per swimmer
 
-╭────────────── Next Steps ──────────────╮
-│ 1. Next command:                       │
-│    swim-data-tool next-command         │
-│                                        │
-│ 2. Alternative:                        │
-│    swim-data-tool alternative          │
-╰────────────────────────────────────────╯
+╭─ Next Steps ──────────────────────────╮
+│ 1. Next command:                      │
+│    swim-data-tool next-command        │
+│                                       │
+│ 2. Alternative:                       │
+│    swim-data-tool alternative         │
+╰───────────────────────────────────────╯
+```
+
+### Code Pattern for Next Steps
+
+```python
+# Create Next Steps panel
+console.print(Panel(
+    next_steps,
+    title="Next Steps",
+    border_style="green",
+    expand=False  # Auto-fit content width (prevents wrapping)
+))
 ```
 
 ---
