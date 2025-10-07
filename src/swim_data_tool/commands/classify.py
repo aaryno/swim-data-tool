@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 from rich.console import Console
+from rich.panel import Panel
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -144,14 +145,33 @@ class ClassifyUnattachedCommand:
         self._save_progress(progress, progress_log)
 
         # Summary
-        console.print("\n[bold green]Classification Complete![/bold green]\n")
+        console.print("\n[bold green]✓ Classification Complete![/bold green]\n")
         console.print(f"  Processed this run: {processed_count}")
         console.print(f"  Skipped (already done): {skipped_count}")
-        console.print(f"  Total swimmers: {len(progress['processed_swimmers'])}\n")
-        console.print(f"  📊 Probationary swims: {progress['total_probationary']}")
-        console.print(f"  📊 Team-unattached swims: {progress['total_team_unattached']}\n")
-        console.print(f"  📁 Probationary: {probationary_dir}")
-        console.print(f"  📁 Team-unattached: {team_unattached_dir}\n")
+        console.print(f"  Total swimmers: {len(progress['processed_swimmers'])}")
+        console.print(f"  Probationary swims: {progress['total_probationary']}")
+        console.print(f"  Team-unattached swims: {progress['total_team_unattached']}")
+        
+        # Show next steps
+        next_steps = """1. Generate team records:
+   [cyan]swim-data-tool generate records[/cyan]
+   
+   Or generate specific course:
+   [cyan]swim-data-tool generate records --course=scy[/cyan]
+   [cyan]swim-data-tool generate records --course=lcm[/cyan]
+
+2. View your records:
+   [cyan]cat data/records/scy/records.md[/cyan]
+   
+3. Check classification output:
+   [cyan]ls -lh data/processed/unattached/[/cyan]"""
+        
+        console.print()
+        console.print(Panel(
+            next_steps,
+            title="Next Steps",
+            border_style="green"
+        ))
 
     def _classify_swimmer(self, csv_file: Path) -> dict:
         """Classify unattached swims for a single swimmer.

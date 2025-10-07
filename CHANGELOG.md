@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.3] - 2025-10-07
+
+### Added
+- **Consistent Next Steps panels across all commands**
+  - Every command now shows what to do next in a green-bordered panel
+  - Clear, actionable guidance throughout the workflow
+  - Commands formatted in cyan for easy copy/paste
+
+### Improved
+- **Enhanced output formatting for all commands**
+  - classify: Added Next Steps panel with generate commands
+  - generate: Added Next Steps with dynamic file paths and sharing instructions
+  - All commands use consistent visual style (✓ checkmarks, clean layout)
+
 ## [0.4.2] - 2025-10-07
 
 ### Added

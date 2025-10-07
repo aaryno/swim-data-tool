@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from rich.console import Console
+from rich.panel import Panel
 from rich.table import Table
 
 from swim_data_tool.services.record_generator import RecordGenerator
@@ -109,7 +110,7 @@ class GenerateRecordsCommand:
             )
 
         # Summary
-        console.print("[bold green]✨ Record generation complete![/bold green]\n")
+        console.print("[bold green]✓ Record Generation Complete![/bold green]\n")
 
         # Display summary table
         table = Table(title="Generated Files")
@@ -122,4 +123,29 @@ class GenerateRecordsCommand:
                 table.add_row(course.upper(), str(file_path.relative_to(self.cwd)))
 
         console.print(table)
+        
+        # Show next steps
+        view_commands = []
+        for course in courses:
+            file_path = self.records_dir / course / "records.md"
+            if file_path.exists():
+                view_commands.append(f"   [cyan]cat {file_path.relative_to(self.cwd)}[/cyan]")
+        
+        next_steps = f"""1. View your team records:
+{chr(10).join(view_commands)}
+
+2. Share records:
+   Copy the markdown files to your team website or GitHub
+   Files are in: [cyan]data/records/[/cyan]
+
+3. Update records after new meets:
+   [cyan]swim-data-tool import swimmers[/cyan]
+   [cyan]swim-data-tool classify unattached[/cyan]
+   [cyan]swim-data-tool generate records[/cyan]"""
+        
         console.print()
+        console.print(Panel(
+            next_steps,
+            title="Next Steps",
+            border_style="green"
+        ))
