@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.4.5] - 2025-10-07
+
+### Added
+- **Fully implemented enhanced `classify unattached` command**
+  - Interactive mode with user prompts for 4 classification decisions
+  - CLI flags for non-interactive mode (--high-school, --probationary, --college, --misc-unattached)
+  - USA Swimming transfer rule logic:
+    - Post-Jan 1, 2023: 60-day unattached period
+    - Pre-Jan 1, 2023: 120-day unattached period
+  - Four classification categories:
+    - High School: Swims for high school teams
+    - Probationary: Unattached swims within transfer window before joining club
+    - College: Unattached swims during college years (ages 18-22)
+    - Misc Unattached: All other unattached swims
+  - Config file persistence (`.swim-data-tool-classify-config.json`)
+    - Saves decisions for reuse
+    - CLI flags override saved config
+    - Version tracking
+  - Classification metadata columns added to output CSVs:
+    - `classification_category`: Category name
+    - `classification_decision`: include or exclude
+    - `classification_rationale`: Human-readable explanation
+    - `transfer_rule_days`: 60 or 120 for probationary swims
+  - Pre-analysis statistics showing swim breakdown by category
+  - Enhanced summary output with decision tracking
+
+### Changed
+- **Output structure**: Changed from `data/processed/unattached/{probationary,team-unattached}/` to `data/processed/classified/{official,excluded}/`
+- Classification now determines record eligibility based on user decisions
+- All swims (club-affiliated and unattached) included in output with classification metadata
+
 ## [0.4.4] - 2025-10-07
 
 ### Documentation
@@ -22,12 +53,20 @@
   - Every command now shows what to do next in a green-bordered panel
   - Clear, actionable guidance throughout the workflow
   - Commands formatted in cyan for easy copy/paste
+- **TODO for future relay recognition**
+  - Added documentation for future feature to recognize individuals in relay results
+  - Will enable crediting swimmers in team records and top 10 lists
 
 ### Improved
 - **Enhanced output formatting for all commands**
   - classify: Added Next Steps panel with generate commands
   - generate: Added Next Steps with dynamic file paths and sharing instructions
   - All commands use consistent visual style (✓ checkmarks, clean layout)
+- **Better import statistics and relay handling**
+  - Import now skips relay entries (PersonKey=0) automatically
+  - Clear breakdown: total entries, individual swimmers, relay-only entries
+  - Shows "Already cached", "Will attempt", and "Previously attempted" counts
+  - All numbers now add up correctly (no more confusion)
 
 ## [0.4.2] - 2025-10-07
 

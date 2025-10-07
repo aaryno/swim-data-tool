@@ -4,9 +4,9 @@
 
 **swim-data-tool** is a modern Python CLI tool for swim team record management. It provides a unified interface for collecting, processing, and analyzing swim data from USA Swimming and World Aquatics APIs.
 
-**Current Version:** 0.4.2
+**Current Version:** 0.4.5
 
-**Status:** ✅ Production-ready for core workflow - init, roster, import, classify, generate all working!
+**Status:** ✅ Production-ready with enhanced UX - init, roster, import, classify, generate all working with consistent formatted output!
 
 ---
 
@@ -30,7 +30,7 @@
 ```
 swim-data-tool/
 ├── pyproject.toml              # Project configuration (PEP 517/518)
-├── VERSION                     # Semantic version (0.4.2)
+├── VERSION                     # Semantic version (0.4.5)
 ├── README.md                   # User documentation
 ├── CHANGELOG.md                # Version history
 ├── LICENSE                     # MIT license
@@ -105,7 +105,7 @@ swim-data-tool/
 
 ---
 
-## Current State (v0.4.2)
+## Current State (v0.4.5)
 
 ### ✅ Fully Implemented Features
 
@@ -125,29 +125,35 @@ swim-data-tool/
 - `gitkeep.template` - Preserve empty directories
 
 #### 3. init Command (`swim-data-tool init "Team Name"`)
-- **Interactive team search via USA Swimming API** ⚠️ Partially Implemented
+- **Interactive team search via USA Swimming API** ✅ Fully Working
   - Enter `?` for team code to trigger search dialogue
-  - **Smart team code suggestion** based on club name patterns ✅ Working
-  - Two-step API lookup: PersonKey → swim history → team codes 🚧 In Progress
+  - **Smart team code suggestion** based on club name patterns
+  - **Two-step API lookup:** PersonKey → swim history → team codes
     - Step 1: Find PersonKey via Public Person Search datasource
     - Step 2: Query swims for team code via USA Swimming Times Elasticube
-    - Status: Framework complete, API integration needs completion
-  - Formatted table display with team selection ✅ Working
-  - Auto-fill team information after selection ✅ Working
-  - **Fallback:** Manual entry with smart suggestions works well
+    - Returns actual team codes (e.g., "SWAS") not PersonKeys
+  - Formatted table display with team selection
+  - Auto-fill team information after selection
+  - **Fallback:** Manual entry with smart suggestions
 - Creates complete directory structure
 - Generates all configuration files from templates
 - Version tracking with `.swim-data-tool-version`
-- Displays formatted "Next Steps" with roster workflow
+- **Displays formatted "Next Steps" panel** in green with clear guidance
 
 #### 4. roster Command (`swim-data-tool roster`) **NEW in v0.4.2**
-- Fetches all swimmers who ever swam for the team
-- Queries USA Swimming API across configured seasons
-- `--seasons=all` option to query all years
+- Fetches all swimmers who ever swam for the team from USA Swimming
+- Queries USA Swimming Times Elasticube for all swims by team code
+- `--seasons=all` option to query all configured years (START_YEAR to END_YEAR)
 - `--seasons=2024 --seasons=2025` for specific years
 - Outputs to `data/lookups/roster.csv` by default
 - Custom output path with `--output` option
-- Shows formatted next steps panel with import instructions
+- **Includes relay entries** (PersonKey=0) for reference
+  - Relays kept in roster but skipped during import
+  - TODO: Future enhancement to parse relay names and search for individual PersonKeys
+- **Shows formatted Next Steps panel** with:
+  - Command to import all swimmers
+  - Example to test with individual swimmer
+  - Actual PersonKey from roster as example
 
 #### 5. USA Swimming API Client (Production Ready)
 - Real Sisense/Elasticube API integration
@@ -169,19 +175,33 @@ swim-data-tool/
 - Rich progress output
 
 #### 7. import swimmers Command (`swim-data-tool import swimmers`)
-- **Smart defaults in v0.4.2:**
+- **Smart defaults:**
   - Defaults to `data/lookups/roster.csv` if no `--file` specified
   - No need to specify file when using roster workflow
 - Reads CSV with columns: PersonKey, FullName
+- **Automatic relay handling:**
+  - Skips relay entries (PersonKey=0) automatically
+  - Cannot import relays since they have no individual PersonKey
+  - TODO: Future enhancement to recognize individuals in relay results for crediting in team records
 - Downloads career data for each swimmer
-- **Performance monitoring:**
-  - Real-time average download rate in progress bar
+- **Performance monitoring (v0.4.2+):**
+  - Real-time average download rate in progress bar (e.g., "avg: 0.9s/swimmer")
   - Slow swimmer detection (>30s warning)
-  - Performance statistics in summary
+  - Tracks recent download times (rolling average of last 10)
+  - Performance statistics in summary output
+- **Clear statistics breakdown (v0.4.5):**
+  - Total entries in roster
+  - Individual swimmers (importable)
+  - Relay-only entries (skipped)
+  - Already cached (have data files)
+  - Will attempt (not yet tried)
+  - Previously attempted (had no data)
+  - All numbers add up correctly
 - Progress tracking with resumability
 - Skips already downloaded files
 - `--dry-run` mode to preview
 - Better interrupt handling (Ctrl+C)
+- **Shows formatted Next Steps panel** with classify and generate commands
 
 #### 8. classify unattached Command (`swim-data-tool classify unattached`)
 - Reads swimmer CSVs from `data/raw/swimmers/`
@@ -192,6 +212,7 @@ swim-data-tool/
 - Saves to `data/processed/unattached/probationary/` and `.../team-unattached/`
 - Progress tracking with JSON log (resumable)
 - Rich progress bars
+- **Shows formatted Next Steps panel** with generate records commands
 
 #### 9. generate records Command (`swim-data-tool generate records`)
 - Loads swimmer data from raw and processed directories
@@ -203,6 +224,10 @@ swim-data-tool/
 - `--course=scy|lcm|scm` option to filter specific course
 - Probationary swim indicators (‡)
 - Saves to `data/records/{course}/records.md`
+- **Shows formatted Next Steps panel** with:
+  - Commands to view generated records
+  - Instructions for sharing records
+  - Workflow to update after new meets
 
 #### 10. Event Definitions Module (`models/events.py`)
 - SCY, LCM, SCM event lists
@@ -266,16 +291,25 @@ swim-data-tool generate records
 
 ## Version History
 
-### v0.4.2 (Current) - 2025-10-07
+### v0.4.5 (Current) - 2025-10-07
+- ✅ Combined release with roster, UX improvements, and relay handling
+- ✅ Consistent Next Steps panels across ALL commands
+- ✅ Better import statistics with clear breakdown
+- ✅ Automatic relay skipping with proper counting
+- ✅ All numbers add up correctly (total = individuals + relays)
+
+### v0.4.2 - 2025-10-07
 - ✅ roster command for fetching team rosters
 - ✅ Smart defaults for import swimmers (uses roster.csv)
 - ✅ Performance monitoring during imports
-- ✅ Consistent formatted output across all commands
+- ✅ Real-time average download rate
+- ✅ Slow swimmer detection (>30s warnings)
 
 ### v0.4.1 - 2025-10-07
 - ✅ Interactive team search in init command
 - ✅ Two-step API integration for team discovery
 - ✅ Smart team code suggestions
+- ✅ Returns actual team codes (not PersonKeys)
 
 ### v0.4.0 - 2025-10-07
 - ✅ generate records command
@@ -304,17 +338,23 @@ swim-data-tool generate records
 
 ### Future Commands
 
-1. **Top 10 Lists** (`generate top10`)
+1. **Relay Recognition**
+   - Parse relay names from roster to identify swimmers who only appear in relays
+   - Search USA Swimming to find their PersonKeys
+   - When generating records/top 10/annual analysis, credit individuals in relay results
+   - Requires name matching against known swimmers
+
+2. **Top 10 Lists** (`generate top10`)
    - Top 10 all-time performers by event
    - Across all age groups
    - Individual files per event
 
-2. **Annual Summaries** (`generate annual`)
+3. **Annual Summaries** (`generate annual`)
    - Best times from specific season
    - New records set
    - Season highlights
 
-3. **Publish Command** (`publish`)
+4. **Publish Command** (`publish`)
    - Publish records to public GitHub repository
    - Git integration
    - Dry-run mode
@@ -395,7 +435,7 @@ END_YEAR="2025"
 COURSES="scy,lcm,scm"
 
 # Tool Version (auto-managed)
-SWIM_DATA_TOOL_VERSION="0.4.2"
+SWIM_DATA_TOOL_VERSION="0.4.5"
 ```
 
 ---
@@ -466,23 +506,23 @@ uv run ruff format --check .
 # Build distribution
 uv build
 
-# Result: dist/swim_data_tool-0.4.2-py3-none-any.whl
+# Result: dist/swim_data_tool-0.4.5-py3-none-any.whl
 ```
 
 ### Releasing
 
 ```bash
 # Update version
-echo "0.4.3" > VERSION
+echo "0.4.6" > VERSION
 # Update pyproject.toml version field
 # Update CHANGELOG.md
-# Update README.md
+# Update README.md (if needed)
 # Update this file (claude.md)
 
 # Commit and tag
-git add .
-git commit -m "Release v0.4.3 - Description"
-git tag v0.4.3
+git add -A
+git commit -m "feat: Description of changes (vX.X.X)"
+git tag -a vX.X.X -m "Release vX.X.X: Description"
 git push && git push --tags
 ```
 
@@ -495,12 +535,46 @@ git push && git push --tags
 **Base URL:** `https://bkzpf9l8qmjq.sg.qlikcloud.com/api/v1/data`
 
 **Authentication:** Bearer token (hardcoded in `usa_swimming.py`)
+- **Note:** Tokens expire frequently, requiring manual refresh from browser network tab
 
 **Key Methods:**
 - `query_times_multi_year()` - Query swimmer times across multiple years
 - `download_swimmer_career()` - Download complete career with chunking
 - `search_swimmer_by_name()` - Search for swimmers by name
 - `get_swimmer_teams()` - Extract team codes from swim history
+
+**Datasources:**
+
+1. **"USA Swimming Times Elasticube"** - Swim times and results
+   - **Has:** `[OrgUnit.Level4Code]` - Actual team code (e.g., "SWAS", "FORD")
+   - **Has:** `[OrgUnit.Level4Name]` - Team name
+   - **Has:** `[OrgUnit.Level3Code]` - LSC code
+   - **Has:** `[OrgUnit.Level3Name]` - LSC name
+   - **Use for:** Getting actual team codes from swim history
+
+2. **"Public Person Search"** - Swimmer registry
+   - **Has:** `[Persons.FullName]`, `[Persons.FirstAndPreferredName]`, `[Persons.LastName]`
+   - **Has:** `[Persons.PersonKey]` - Unique swimmer ID
+   - **Has:** `[Persons.ClubName]` - Current club (full name only)
+   - **Has:** `[Persons.LscCode]` - LSC code
+   - **Missing:** ClubCode field (does NOT exist)
+   - **Use for:** Finding swimmers by name to get PersonKey
+
+**Two-Step Team Search Pattern:**
+```python
+# Step 1: Find PersonKey by name (Public Person Search)
+search_results = api.search_by_name("John Smith")
+person_key = search_results[0]['PersonKey']
+
+# Step 2: Query swims for team code (USA Swimming Times Elasticube)
+swim_history = api.query_times(person_key, year="2025")
+team_code = swim_history[0]['[OrgUnit.Level4Code]']  # "SWAS"
+```
+
+**Rate Limiting & Memory Pressure:**
+- API can hit memory limits with large queries (>85% server capacity)
+- Keep queries focused: single year, specific PersonKey, small result counts (10-50)
+- Avoid broad searches like "Aquatic" across multiple years
 
 **Rate Limiting:** Unknown (be conservative, add delays if needed)
 
@@ -587,13 +661,17 @@ Only modify these root files when needed:
 
 ### Current Limitations
 - No World Aquatics integration yet (deferred)
-- No relay events in records (future)
+- Relay entries (PersonKey=0) cannot be imported individually
+  - Relays are included in roster for reference
+  - Skipped automatically during import
+  - Future: parse names and search for individual PersonKeys
+- No relay recognition in records yet (individuals in relay results not credited)
 - No top 10 lists yet (v0.5.0)
 - No annual summaries yet (v0.5.0)
 - No publish command yet (v0.5.0)
 
 ### Planned Improvements
-- Add relay event support
+- **Relay recognition:** Parse relay names, find PersonKeys, credit individuals
 - Implement top 10 generation
 - Add annual summary generation
 - Create publish workflow
@@ -654,7 +732,9 @@ swim-data-tool config
 
 ### south-west-aquatic-sports (private analysis repo)
 **Location:** `~/swimming/south-west-aquatic-sports`  
-**Status:** ✅ Initialized and being used for testing
+**Status:** ✅ Initialized and being used for testing  
+**Team Code:** `SWAS` (not "AZ SWAS" - just "SWAS")  
+**Verified:** Wade Olsson (PersonKey: 1685870)
 
 ### tucson-ford-dealers-aquatics-records (public repo)
 **URL:** `https://github.com/aaryno/tucson-ford-dealers-aquatics-records.git`  
@@ -674,9 +754,67 @@ swim-data-tool config
 ### Testing Guide
 - See `artifacts/session-summary-v0.1-v0.3.md` for testing instructions
 - See `artifacts/v0.4.0-release-summary.md` for generate records details
+- See `artifacts/session-2025-10-07-team-search-implementation.md` for team search feature status
+
+### Session Artifacts
+- `artifacts/session-2025-10-07-team-search-implementation.md` - Team search implementation details, API discoveries, token management
+
+---
+
+## UX Design Principles (v0.4.5+)
+
+### Consistent Output Formatting
+
+All commands follow these UX patterns:
+
+1. **Next Steps Panels**
+   - Every command shows what to do next in a green-bordered Rich Panel
+   - Commands formatted in cyan for easy copy/paste
+   - Clear, actionable guidance
+   - Example: After `roster`, shows how to `import swimmers` with actual PersonKey
+
+2. **Progress Bars**
+   - Rich progress bars with spinner, description, bar, count, and time
+   - Real-time updates with contextual information
+   - Example: "Downloading: John Smith (avg: 0.9s/swimmer)"
+
+3. **Statistics Clarity**
+   - All numbers explained and add up correctly
+   - Clear labels: "Already cached", "Will attempt", "Previously attempted"
+   - Example: 771 total = 403 individuals + 368 relay-only entries
+
+4. **Visual Consistency**
+   - Use ✓ (not ✅) for success messages
+   - Cyan for commands, green for success, yellow for warnings, red for errors
+   - Bold for section headers
+   - Dim for explanatory text
+
+5. **Performance Visibility**
+   - Show real-time metrics (average rate, slow warnings)
+   - Track and report on completion
+   - Help users identify issues early
+
+### Example Output Pattern
+
+```
+✓ Operation Complete!
+
+  Downloaded: 157 swimmers
+  No data: 27 swimmers
+  Total cached: 184 swimmers
+  Average rate: 0.9s per swimmer
+
+╭────────────── Next Steps ──────────────╮
+│ 1. Next command:                       │
+│    swim-data-tool next-command         │
+│                                        │
+│ 2. Alternative:                        │
+│    swim-data-tool alternative          │
+╰────────────────────────────────────────╯
+```
 
 ---
 
 **Last Updated:** 2025-10-07  
-**Version:** 0.4.2  
-**Status:** Production-ready for core workflow
+**Version:** 0.4.5  
+**Status:** Production-ready with enhanced UX

@@ -1,6 +1,6 @@
 [project]
 name = "swim-data-tool"
-version = "0.4.4"
+version = "0.4.5"
 description = "CLI tool for swim team record management"
 authors = [{name = "Aaryn Rosenberg"}]
 readme = "README.md"

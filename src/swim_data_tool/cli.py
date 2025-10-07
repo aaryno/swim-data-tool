@@ -146,17 +146,57 @@ def classify() -> None:
 
 
 @classify.command(name="unattached")
+@click.option(
+    "--high-school",
+    type=click.Choice(["include", "exclude"], case_sensitive=False),
+    help="Include or exclude high school swims",
+)
+@click.option(
+    "--probationary",
+    type=click.Choice(["include", "exclude"], case_sensitive=False),
+    help="Include or exclude probationary swims (transfer period)",
+)
+@click.option(
+    "--college",
+    type=click.Choice(["include", "exclude"], case_sensitive=False),
+    help="Include or exclude unattached college swims",
+)
+@click.option(
+    "--misc-unattached",
+    type=click.Choice(["include", "exclude"], case_sensitive=False),
+    help="Include or exclude misc unattached swims",
+)
 @click.pass_context
-def classify_unattached(ctx: click.Context) -> None:
-    """Classify unattached swims as probationary or team-unattached.
+def classify_unattached(
+    ctx: click.Context,
+    high_school: str | None,
+    probationary: str | None,
+    college: str | None,
+    misc_unattached: str | None,
+) -> None:
+    """Classify unattached swims for record eligibility.
+
+    Categorizes unattached swims into: High School, Probationary (transfer period),
+    College, and Misc. Decisions can be provided via flags or interactively.
 
     \b
     Examples:
+        # Interactive mode (prompts for decisions):
         swim-data-tool classify unattached
+
+        # Non-interactive with flags:
+        swim-data-tool classify unattached --high-school=exclude --probationary=include --college=exclude --misc-unattached=exclude
     """
     from swim_data_tool.commands.classify import ClassifyUnattachedCommand
 
-    cmd = ClassifyUnattachedCommand(ctx.obj["cwd"])
+    decisions = {
+        "high_school": high_school,
+        "probationary": probationary,
+        "college": college,
+        "misc_unattached": misc_unattached,
+    }
+
+    cmd = ClassifyUnattachedCommand(ctx.obj["cwd"], decisions)
     cmd.run()
 
 
