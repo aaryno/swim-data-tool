@@ -74,3 +74,4 @@ class ImportSwimmerCommand:
         safe_name = name.lower().replace(" ", "-")
         safe_name = "".join(c for c in safe_name if c.isalnum() or c == "-")
         return safe_name
+

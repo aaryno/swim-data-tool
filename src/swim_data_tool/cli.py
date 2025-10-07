@@ -69,5 +69,45 @@ def config(ctx: click.Context) -> None:
     cmd.run()
 
 
+@main.group()
+def import_cmd() -> None:
+    """Import swimmer data from USA Swimming."""
+    pass
+
+
+@import_cmd.command(name="swimmer")
+@click.argument("person_key", type=int)
+@click.pass_context
+def import_swimmer(ctx: click.Context, person_key: int) -> None:
+    """Import career data for a single swimmer.
+
+    \b
+    Examples:
+        swim-data-tool import swimmer 123456
+    """
+    from swim_data_tool.commands.import_swimmer import ImportSwimmerCommand
+
+    cmd = ImportSwimmerCommand(person_key, ctx.obj["cwd"])
+    cmd.run()
+
+
+@import_cmd.command(name="swimmers")
+@click.option("--file", type=click.Path(exists=True), help="CSV file with PersonKeys")
+@click.option("--dry-run", is_flag=True, help="Show what would be downloaded")
+@click.pass_context
+def import_swimmers(ctx: click.Context, file: str | None, dry_run: bool) -> None:
+    """Import career data for multiple swimmers.
+
+    \b
+    Examples:
+        swim-data-tool import swimmers --file=swimmers.csv
+        swim-data-tool import swimmers --file=swimmers.csv --dry-run
+    """
+    from swim_data_tool.commands.import_swimmers import ImportSwimmersCommand
+
+    cmd = ImportSwimmersCommand(ctx.obj["cwd"], file, dry_run)
+    cmd.run()
+
+
 if __name__ == "__main__":
     main()

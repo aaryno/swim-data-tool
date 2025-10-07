@@ -4,9 +4,9 @@
 
 **swim-data-tool** is a modern Python CLI tool for swim team record management. It provides a unified interface for collecting, processing, and analyzing swim data from USA Swimming and World Aquatics APIs.
 
-**Current Version:** 0.1.0
+**Current Version:** 0.2.0
 
-**Status:** ✅ Init command implemented - Ready to initialize team repositories!
+**Status:** ✅ Import commands implemented - Ready to download swimmer data!
 
 ---
 
@@ -89,7 +89,7 @@ swim-data-tool/
 
 ---
 
-## Current State (v0.1.0)
+## Current State (v0.2.0)
 
 ### ✅ Complete
 
@@ -113,6 +113,15 @@ swim-data-tool/
      - Automatic version tracking
    - ✅ `swim-data-tool status` - Shows current configuration
    - ✅ `swim-data-tool config` - Displays .env file
+   - ✅ **`swim-data-tool import swimmer <person-key>`** - Download single swimmer
+     - Downloads complete career data by PersonKey
+     - Saves to data/raw/swimmers/
+     - Configurable year range
+   - ✅ **`swim-data-tool import swimmers --file=<csv>`** - Batch download
+     - Reads CSV with PersonKeys and names
+     - Progress bar with rich
+     - Resumability (skips existing files)
+     - Dry-run mode for testing
 
 4. **Template System**
    - `env.template` - Environment variables with placeholders
@@ -121,10 +130,13 @@ swim-data-tool/
    - `claude.md.template` - AI assistant context for clubs
    - `gitkeep.template` - Preserve empty directories
 
-5. **API Foundation**
-   - USA Swimming API client structure (manual entry flow for now)
+5. **USA Swimming API Client** (Production Ready)
+   - Real Sisense/Elasticube API integration
+   - `query_times_multi_year()` - efficient multi-year queries
+   - `download_swimmer_career()` - complete swimmer history
+   - `to_dataframe()` - convert API results to pandas
+   - Optimized chunking strategy (1 call or 3 chunks)
    - TeamInfo dataclass model
-   - Ready for future API integration
 
 6. **Testing & Quality**
    - Test framework (pytest + pytest-cov)
@@ -134,14 +146,15 @@ swim-data-tool/
    - GitHub Actions CI/CD (tests, linting, type checking)
    - All tests passing
 
-### 🚧 TODO for v0.2.0
+### ✅ DONE in v0.2.0
 
-1. **Implement import commands**
-   - USA Swimming API client (actual API calls)
-   - World Aquatics scraper
-   - Swimmer data collection
-   - Meet results collection
-   - Progress tracking and resumability
+1. **Implemented import commands**
+   - ✅ USA Swimming API client with Sisense integration
+   - ✅ `import swimmer` command for single downloads
+   - ✅ `import swimmers` command for batch downloads
+   - ✅ Progress tracking with rich progress bars
+   - ✅ Resumability (skips existing files)
+   - ⏭️ World Aquatics scraper (deferred to later version)
 
 ### 🚧 TODO for v0.3.0
 

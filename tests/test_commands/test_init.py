@@ -109,3 +109,4 @@ class TestTemplateContent:
 
         assert "{{CLUB_NAME}}" in content
         assert "{{REPO_NAME}}" in content
+

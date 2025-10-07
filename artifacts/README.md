@@ -26,3 +26,4 @@ To keep the project root clean and organized, AI assistants place all working do
 ## Current Artifacts
 
 None yet - this directory was created with v0.1.0 release.
+

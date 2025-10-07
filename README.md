@@ -7,16 +7,17 @@
 
 A modern CLI tool for swim team record management.
 
-**Current Version:** 0.1.0
+**Current Version:** 0.2.0
 
 ## Status
 
-✅ **v0.1.0 Released** - Init command fully implemented!
+✅ **v0.2.0 Released** - Import commands fully implemented!
 
 - ✅ `init` - Initialize team repositories with configuration
 - ✅ `status` - View current status
 - ✅ `config` - View configuration
-- 🚧 `import` - Coming in v0.2.0
+- ✅ `import swimmer` - Download single swimmer data
+- ✅ `import swimmers` - Batch download swimmer data
 - 🚧 `classify` - Coming in v0.3.0
 - 🚧 `generate` - Coming in v0.4.0
 
@@ -85,16 +86,16 @@ This creates:
 
 ## Commands
 
-### Working Commands (v0.1.0)
+### Working Commands (v0.2.0)
 
 - ✅ `init <team-name>` - Initialize a new team repository
 - ✅ `status` - Show current status and configuration
 - ✅ `config` - View configuration from .env file
+- ✅ `import swimmer <person-key>` - Download single swimmer career data
+- ✅ `import swimmers --file=<csv>` - Batch download swimmers from CSV file
 
 ### Coming Soon
 
-- 🚧 `import swimmers` - Import swim data from APIs (v0.2.0)
-- 🚧 `import swimmer <name>` - Import specific swimmer (v0.2.0)
 - 🚧 `classify unattached` - Classify swim types (v0.3.0)
 - 🚧 `generate records` - Generate team records (v0.4.0)
 - 🚧 `publish` - Publish records to public repo (v0.5.0)
