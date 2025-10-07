@@ -353,13 +353,19 @@ class InitCommand:
         return """1. Review configuration:
    swim-data-tool config
 
-2. Import swimmer data:
-   swim-data-tool import swimmers --src=usa-swimming
+2. Fetch team roster:
+   swim-data-tool roster --seasons=all
 
-3. Classify unattached swims:
+3. Import swimmer data:
+   swim-data-tool import swimmers --file=data/lookups/roster.csv
+   
+   Or test with individual swimmers first:
+   swim-data-tool import swimmer <PERSON_KEY>
+
+4. Classify unattached swims:
    swim-data-tool classify unattached
 
-4. Generate records:
-   swim-data-tool generate records --course=all
+5. Generate records:
+   swim-data-tool generate records
 
 For more information, see README.md and claude.md in this directory."""

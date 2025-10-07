@@ -529,6 +529,100 @@ class USASwimmingAPI:
         except Exception:
             return []
     
+    def get_team_roster(
+        self,
+        team_code: str,
+        season_years: list[str] | None = None,
+    ) -> pd.DataFrame:
+        """Get roster of swimmers for a team based on recent swims.
+        
+        Queries USA Swimming Times for all swimmers who swam for the team
+        in recent seasons and returns their PersonKeys and names.
+        
+        Args:
+            team_code: USA Swimming team code (e.g., "SWAS", "FORD")
+            season_years: List of season years to search (default: last 2 seasons)
+            
+        Returns:
+            DataFrame with columns: PersonKey, FullName, FirstSwimDate, LastSwimDate, SwimCount
+        """
+        if season_years is None:
+            # Default to current and previous season
+            season_years = ["2025", "2024"]
+        
+        # Build year members
+        year_members = []
+        for year_str in season_years:
+            year_int = int(year_str)
+            separator = "-" if year_int >= 2026 else " - "
+            year_members.append(f"{year_str} (9/1/{year_int-1}{separator}8/31/{year_str})")
+        
+        # Query for all swims by team code
+        metadata = [
+            {"jaql": {"title": "PersonKey", "dim": "[UsasSwimTime.PersonKey]", "datatype": "numeric"}},
+            {"jaql": {"title": "FullName", "dim": "[UsasSwimTime.FullName]", "datatype": "text"}},
+            {"jaql": {"title": "SwimDate", "dim": "[SeasonCalendar.CalendarDate (Calendar)]", "datatype": "datetime", "level": "days"}},
+            {
+                "jaql": {
+                    "title": "TeamCode",
+                    "dim": "[OrgUnit.Level4Code]",
+                    "datatype": "text",
+                    "filter": {"equals": team_code.upper()}
+                },
+                "panel": "scope"
+            },
+            {
+                "jaql": {
+                    "title": "SeasonYearDesc",
+                    "dim": "[SeasonCalendar.SeasonYearDesc]",
+                    "datatype": "text",
+                    "filter": {"members": year_members}
+                },
+                "panel": "scope"
+            }
+        ]
+        
+        payload = {
+            "metadata": metadata,
+            "datasource": "USA Swimming Times Elasticube",
+            "by": "ComposeSDK",
+            "queryGuid": "team-roster-query",
+            "count": 10000,  # Get lots of swims to capture all swimmers
+        }
+        
+        try:
+            response = self.session.post(self.BASE_URL, json=payload)
+            
+            if response.status_code != 200:
+                return pd.DataFrame()
+            
+            results = response.json()
+            
+            if not results or "values" not in results or not results["values"]:
+                return pd.DataFrame()
+            
+            # Convert to DataFrame
+            df = self.to_dataframe(results)
+            
+            if df is None or df.empty:
+                return pd.DataFrame()
+            
+            # Aggregate by PersonKey to get roster
+            roster = df.groupby(["PersonKey", "FullName"]).agg(
+                FirstSwimDate=("SwimDate", "min"),
+                LastSwimDate=("SwimDate", "max"),
+                SwimCount=("SwimDate", "count")
+            ).reset_index()
+            
+            # Sort by most recent activity
+            roster = roster.sort_values("LastSwimDate", ascending=False)
+            
+            return roster
+            
+        except Exception as e:
+            print(f"Error fetching roster: {e}")
+            return pd.DataFrame()
+    
     def search_team(self, team_name: str, lsc_code: str | None = None) -> list[TeamInfo]:
         """Search for teams by name in USA Swimming database.
 

@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.4.2] - 2025-10-07
+
+### Added
+- **Roster command** to fetch team rosters from USA Swimming
+  - `swim-data-tool roster` fetches all swimmers who swam for the team
+  - `--seasons=all` option to query all configured seasons
+  - Outputs to `data/lookups/roster.csv` by default
+  - Shows next steps in formatted panel
+- **Import monitoring and performance tracking**
+  - Real-time average download rate displayed in progress bar
+  - Slow swimmer detection (>30s warning)
+  - Performance statistics in summary output
+  - Better interrupt handling (Ctrl+C)
+
+### Changed
+- `swim-data-tool import swimmers` now defaults to `data/lookups/roster.csv`
+- No need to specify `--file` if using default roster location
+- Updated "Next Steps" output formatting across all commands
+  - Consistent green panels with clear instructions
+  - init command shows roster workflow
+  - roster command shows import options with example
+  - import command shows classify and generate steps
+
+### Improved
+- Better user experience with consistent, nicely-formatted output
+- Performance visibility during long-running imports
+- Simplified command syntax with smart defaults
+
+## [0.4.1] - 2025-10-07
+
+### Added
+- **Interactive team search via swimmer name lookup**
+  - Two-step API integration: find PersonKey → query swims for team codes
+  - Search trigger by entering `?` when prompted for team code
+  - Display results in formatted table with team selection
+  - Auto-fill team information after selection
+- **Smart team code suggestion** based on club name patterns
+
+### Fixed
+- Fixed `search_swimmer_for_team()` to return actual team codes (not PersonKeys)
+- Corrected API query structure for proper two-datasource lookup
+
 ## [0.4.0] - 2025-10-07
 
 ### Added

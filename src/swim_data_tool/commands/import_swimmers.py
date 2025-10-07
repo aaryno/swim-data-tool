@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 from rich.console import Console
+from rich.panel import Panel
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -32,11 +33,17 @@ class ImportSwimmersCommand:
 
     def run(self) -> None:
         """Execute the import swimmers command."""
+        # Default to roster.csv if no file specified
         if not self.csv_file:
-            console.print("[yellow]⚠️  No CSV file specified[/yellow]")
-            console.print("Usage: swim-data-tool import swimmers --file=swimmers.csv\n")
-            console.print("CSV file should have columns: PersonKey, FullName")
-            return
+            default_file = self.cwd / "data" / "lookups" / "roster.csv"
+            if default_file.exists():
+                self.csv_file = str(default_file)
+                console.print(f"[dim]Using default roster: {self.csv_file}[/dim]\n")
+            else:
+                console.print("[yellow]⚠️  No roster file found[/yellow]")
+                console.print("Please run: [cyan]swim-data-tool roster[/cyan] first\n")
+                console.print("Or specify a CSV file with: [cyan]swim-data-tool import swimmers --file=FILE[/cyan]")
+                return
 
         # Load swimmer list
         try:
@@ -105,6 +112,12 @@ class ImportSwimmersCommand:
         downloaded = 0
         errors = 0
         empty = 0
+        timeouts = 0
+        
+        # Rate monitoring
+        recent_times = []
+        max_recent = 10  # Track last 10 downloads
+        timeout_threshold = 30  # seconds per swimmer
 
         with Progress(
             SpinnerColumn(),
@@ -121,12 +134,30 @@ class ImportSwimmersCommand:
             for person_key, name in to_download:
                 progress.update(task, description=f"[cyan]Downloading: {name[:30]}")
 
+                start_time = time.time()
                 try:
                     df = self.api.download_swimmer_career(
                         person_key=person_key,
                         start_year=start_year,
                         end_year=end_year,
                     )
+                    
+                    elapsed = time.time() - start_time
+                    
+                    # Check if this swimmer took too long
+                    if elapsed > timeout_threshold:
+                        console.print(f"\n[yellow]⚠️  {name} took {elapsed:.1f}s (slow swimmer, might have huge career)[/yellow]")
+                        timeouts += 1
+
+                    # Track recent download times
+                    recent_times.append(elapsed)
+                    if len(recent_times) > max_recent:
+                        recent_times.pop(0)
+                    
+                    # Calculate and show average rate
+                    if len(recent_times) >= 3:
+                        avg_time = sum(recent_times) / len(recent_times)
+                        progress.update(task, description=f"[cyan]Downloading: {name[:30]} (avg: {avg_time:.1f}s/swimmer)")
 
                     if not df.empty:
                         safe_name = self._sanitize_filename(name)
@@ -139,6 +170,9 @@ class ImportSwimmersCommand:
                     # Small delay to be respectful to API
                     time.sleep(0.1)
 
+                except KeyboardInterrupt:
+                    console.print("\n[yellow]⚠️  Download interrupted by user[/yellow]")
+                    raise
                 except Exception as e:
                     console.print(f"\n[red]✗ Error downloading {name}: {e}[/red]")
                     errors += 1
@@ -146,11 +180,39 @@ class ImportSwimmersCommand:
                 progress.advance(task)
 
         # Summary
-        console.print("\n[bold green]Import Complete![/bold green]\n")
-        console.print(f"  ✓ Downloaded: {downloaded} swimmers")
-        console.print(f"  ⚠️  No data: {empty} swimmers")
-        console.print(f"  ✗ Errors: {errors} swimmers")
-        console.print(f"  📁 Total cached: {len(existing) + downloaded} swimmers\n")
+        console.print("\n[bold green]✓ Import Complete![/bold green]\n")
+        console.print(f"  Downloaded: {downloaded} swimmers")
+        console.print(f"  No data: {empty} swimmers")
+        if errors > 0:
+            console.print(f"  Errors: {errors} swimmers")
+        if timeouts > 0:
+            console.print(f"  Slow swimmers (>{timeout_threshold}s): {timeouts}")
+        console.print(f"  Total cached: {len(existing) + downloaded} swimmers")
+        
+        # Show average rate if we have data
+        if recent_times:
+            avg_time = sum(recent_times) / len(recent_times)
+            console.print(f"  Average rate: {avg_time:.1f}s per swimmer")
+        
+        # Show next steps
+        next_steps = """1. Classify unattached swims:
+   [cyan]swim-data-tool classify unattached[/cyan]
+
+2. Generate team records:
+   [cyan]swim-data-tool generate records[/cyan]
+   
+   Or generate specific course:
+   [cyan]swim-data-tool generate records --course=scy[/cyan]
+
+3. Check your records:
+   [cyan]cat data/records/scy/records.md[/cyan]"""
+        
+        console.print()
+        console.print(Panel(
+            next_steps,
+            title="Next Steps",
+            border_style="green"
+        ))
 
     def _get_existing_swimmer_files(self, swimmers_dir: Path) -> set[int]:
         """Get set of PersonKeys that already have cached files."""
