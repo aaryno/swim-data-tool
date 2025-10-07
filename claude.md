@@ -125,11 +125,16 @@ swim-data-tool/
 - `gitkeep.template` - Preserve empty directories
 
 #### 3. init Command (`swim-data-tool init "Team Name"`)
-- **Interactive team search via USA Swimming API**
-  - Enter `?` for team code to search by swimmer name
-  - Two-step API lookup: PersonKey → swim history → team codes
-  - Formatted table display with team selection
-  - Auto-fill team information after selection
+- **Interactive team search via USA Swimming API** ⚠️ Partially Implemented
+  - Enter `?` for team code to trigger search dialogue
+  - **Smart team code suggestion** based on club name patterns ✅ Working
+  - Two-step API lookup: PersonKey → swim history → team codes 🚧 In Progress
+    - Step 1: Find PersonKey via Public Person Search datasource
+    - Step 2: Query swims for team code via USA Swimming Times Elasticube
+    - Status: Framework complete, API integration needs completion
+  - Formatted table display with team selection ✅ Working
+  - Auto-fill team information after selection ✅ Working
+  - **Fallback:** Manual entry with smart suggestions works well
 - Creates complete directory structure
 - Generates all configuration files from templates
 - Version tracking with `.swim-data-tool-version`
@@ -532,7 +537,7 @@ git push && git push --tags
 
 ### AI Assistant Rules
 
-**⚠️ IMPORTANT: Artifact management**
+**⚠️ IMPORTANT: Artifact management and development practices**
 
 When working on swim-data-tool, AI assistants must follow these rules:
 
@@ -540,6 +545,24 @@ When working on swim-data-tool, AI assistants must follow these rules:
 2. **Root Directory Protection**: Do NOT create markdown files in the project root without explicit user approval
 3. **Existing Files Only**: Only modify existing root-level files (README.md, CHANGELOG.md, claude.md) when necessary
 4. **Naming Convention**: Use descriptive kebab-case names for artifacts
+5. **Test/Debug Scripts**: Place temporary test and debug scripts in `scratch/` directory (not committed)
+   - Quick API tests, debugging scripts, one-off experiments
+   - `scratch/` is in `.gitignore`
+   - Move functionality to proper modules when mature
+6. **⚠️ CRITICAL: Never run interactive commands via `run_terminal_cmd`**
+   - **Problem:** Interactive tools block the terminal session and prevent output capture
+   - **When:** Any command that prompts for user input (e.g., `swim-data-tool init`)
+   - **Why:** Terminal session blocks waiting for input, subsequent commands fail, output stream tied to interactive session
+   - **Solution:**
+     - **DO:** Ask user to run interactive commands manually
+     - **DO:** Use non-interactive test scripts in `scratch/` for debugging
+     - **DO:** Only run commands that complete immediately without user input
+     - **DON'T:** Run any command with `Prompt.ask()`, `Confirm.ask()`, or similar
+   - **Examples:**
+     - ❌ `swim-data-tool init` (has interactive prompts)
+     - ❌ `vim file.txt` (interactive editor)
+     - ✅ `swim-data-tool status` (non-interactive)
+     - ✅ `python test_script.py` (if script has no prompts)
 
 ### Artifact Types
 

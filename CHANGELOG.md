@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.4] - 2025-10-07
+
+### Documentation
+- **Enhanced `classify unattached` command documentation**
+  - Added interactive mode with user prompts for classification decisions
+  - Added CLI flags for non-interactive mode (--high-school, --probationary, --college, --misc-unattached)
+  - Documented USA Swimming transfer rules:
+    - Post-Jan 1, 2023: 60-day unattached period
+    - Pre-Jan 1, 2023: 120-day unattached period
+  - Added 4 classification categories: High School, Probationary, College, Misc Unattached
+  - Added `.swim-data-tool-classify-config.json` for saving classification decisions
+  - Added classification metadata fields to Swim data model
+  - New comprehensive "Classification Rules & Logic" section in claude.md
+  - Updated data flow to use `data/processed/classified/{official,excluded}/`
+
 ## [0.4.3] - 2025-10-07
 
 ### Added
