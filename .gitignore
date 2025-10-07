@@ -29,6 +29,9 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Scratch directory (test/debug scripts)
+scratch/
+
 # Data files (protect PII)
 data/raw/
 data/processed/

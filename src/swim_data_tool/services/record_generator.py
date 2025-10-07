@@ -335,3 +335,296 @@ class RecordGenerator:
             f.write(
                 f"*Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}*\n"
             )
+
+    def get_top_n_by_event(
+        self, df: pd.DataFrame, course: str, n: int = 10
+    ) -> dict[str, list[RecordEntry]]:
+        """Get top N swimmers for each event (across all age groups).
+
+        Args:
+            df: DataFrame with normalized swim data
+            course: Course to filter ("scy", "lcm", "scm")
+            n: Number of top swimmers to return (default: 10)
+
+        Returns:
+            Dict mapping event_code to list of RecordEntry (top N)
+        """
+        # Filter by course
+        df_course = df[df["event_course"] == course].copy()
+
+        if df_course.empty:
+            return {}
+
+        # Remove invalid times
+        df_course = df_course[df_course["time_seconds"] < float("inf")]
+
+        # Get event list for course
+        if course == "scy":
+            event_list = SCY_EVENTS
+        elif course == "lcm":
+            event_list = LCM_EVENTS
+        elif course == "scm":
+            event_list = SCM_EVENTS
+        else:
+            return {}
+
+        top_n: dict[str, list[RecordEntry]] = {}
+
+        # Process each event
+        for event_code in event_list:
+            # Filter for this event (across ALL age groups)
+            df_event = df_course[df_course["event_code"] == event_code]
+
+            if df_event.empty:
+                continue
+
+            # Sort by time
+            df_event = df_event.sort_values("time_seconds")
+
+            # Get best time per swimmer (no duplicate swimmers)
+            df_best_per_swimmer = df_event.drop_duplicates(subset=["Name"], keep="first")
+
+            # Take top N
+            df_top_n = df_best_per_swimmer.head(n)
+
+            # Convert to RecordEntry list
+            entries = []
+            for idx, row in df_top_n.iterrows():
+                entry = RecordEntry(
+                    event_code=event_code,
+                    age_group="All-Time",  # Top 10 is across all ages
+                    swimmer_name=row.get("Name", ""),
+                    time=row.get("SwimTime", ""),
+                    age=str(row.get("Age", "")),
+                    date=row.get("SwimDate", ""),
+                    meet=row.get("Meet", ""),
+                    swim_type=row.get("swim_type", ""),
+                    time_seconds=row.get("time_seconds", 0.0),
+                )
+                entries.append(entry)
+
+            if entries:
+                top_n[event_code] = entries
+
+        return top_n
+
+    def generate_top10_markdown(
+        self,
+        top_n: dict[str, list[RecordEntry]],
+        course: str,
+        event_code: str,
+        team_name: str,
+        output_path: Path,
+    ) -> None:
+        """Generate markdown file with top N list for a single event.
+
+        Args:
+            top_n: Top N data from get_top_n_by_event
+            course: Course ("scy", "lcm", "scm")
+            event_code: Event code (e.g., "50-free")
+            team_name: Team name for title
+            output_path: Path to output markdown file
+        """
+        course_full = {
+            "scy": "Short Course Yards",
+            "lcm": "Long Course Meters",
+            "scm": "Short Course Meters",
+        }.get(course, course.upper())
+
+        event_name = format_event_name(event_code)
+        entries = top_n.get(event_code, [])
+
+        with open(output_path, "w") as f:
+            # Header
+            f.write(f"# {team_name}\n")
+            f.write(f"## {event_name} - All-Time Top {len(entries)}\n")
+            f.write(f"### {course_full} ({course.upper()})\n\n")
+            f.write(
+                f"**Generated:** {datetime.now().strftime('%B %d, %Y at %I:%M %p')}\n\n"
+            )
+            f.write("---\n\n")
+
+            # Legend
+            f.write("**Legend:**\n")
+            f.write("- ‡ = Probationary period (before joining team)\n\n")
+            f.write("---\n\n")
+
+            # Top N table
+            if entries:
+                f.write("| Rank | Time | Athlete | Age | Date | Meet |\n")
+                f.write("|------|------|---------|-----|------|------|\n")
+
+                for rank, entry in enumerate(entries, start=1):
+                    # Add indicator for probationary swims
+                    athlete_name = entry.swimmer_name
+                    if entry.swim_type == "probationary":
+                        athlete_name += " ‡"
+
+                    # Truncate long meet names
+                    meet = entry.meet
+                    if len(meet) > 40:
+                        meet = meet[:37] + "..."
+
+                    f.write(
+                        f"| {rank} | {entry.time} | {athlete_name} | "
+                        f"{entry.age} | {entry.date} | {meet} |\n"
+                    )
+            else:
+                f.write("*No times recorded for this event.*\n")
+
+            # Footer
+            f.write("\n---\n\n")
+            f.write(
+                f"*Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}*\n"
+            )
+
+    def filter_by_season(self, df: pd.DataFrame, season: int) -> pd.DataFrame:
+        """Filter swims by season year.
+
+        Args:
+            df: DataFrame with swim data
+            season: Season year (e.g., 2024)
+
+        Returns:
+            Filtered DataFrame with swims from that season
+        """
+        if df.empty or "SwimDate" not in df.columns:
+            return df
+
+        # Parse dates
+        df = df.copy()
+        df["swim_date_parsed"] = pd.to_datetime(df["SwimDate"], errors="coerce")
+        df["swim_year"] = df["swim_date_parsed"].dt.year
+
+        # Filter by season year
+        return df[df["swim_year"] == season].copy()
+
+    def generate_annual_summary_markdown(
+        self,
+        season_records: dict[str, dict[str, RecordEntry]],
+        team_records: dict[str, dict[str, RecordEntry]],
+        season: int,
+        course: str,
+        team_name: str,
+        output_path: Path,
+    ) -> None:
+        """Generate annual summary markdown.
+
+        Args:
+            season_records: Best times from the season
+            team_records: All-time team records for comparison
+            season: Season year
+            course: Course ("scy", "lcm", "scm")
+            team_name: Team name
+            output_path: Path to output file
+        """
+        course_full = {
+            "scy": "Short Course Yards",
+            "lcm": "Long Course Meters",
+            "scm": "Short Course Meters",
+        }.get(course, course.upper())
+
+        # Find new records set this season
+        new_records = []
+        for event_code in season_records:
+            for age_group in season_records[event_code]:
+                season_rec = season_records[event_code][age_group]
+                team_rec = team_records.get(event_code, {}).get(age_group)
+
+                # Check if this is a new record
+                if team_rec and season_rec.time_seconds < team_rec.time_seconds:
+                    new_records.append((event_code, age_group, season_rec, team_rec))
+
+        with open(output_path, "w") as f:
+            # Header
+            f.write(f"# {team_name}\n")
+            f.write(f"## {season} Season Summary\n")
+            f.write(f"### {course_full} ({course.upper()})\n\n")
+            f.write(
+                f"**Generated:** {datetime.now().strftime('%B %d, %Y at %I:%M %p')}\n\n"
+            )
+            f.write("---\n\n")
+
+            # New records section
+            if new_records:
+                f.write("## 🏆 New Team Records Set\n\n")
+
+                for event_code, age_group, season_rec, team_rec in new_records:
+                    event_name = format_event_name(event_code)
+                    athlete_name = season_rec.swimmer_name
+                    if season_rec.swim_type == "probationary":
+                        athlete_name += " ‡"
+
+                    f.write(
+                        f"- **{event_name}, {age_group}**: {season_rec.time} by {athlete_name} "
+                        f"(previous: {team_rec.time})\n"
+                    )
+
+                f.write("\n---\n\n")
+            else:
+                f.write("## Season Highlights\n\n")
+                f.write("*No new team records were set this season.*\n\n")
+                f.write("---\n\n")
+
+            # Best times of the season by age group
+            f.write("## Best Times of the Season\n\n")
+
+            # Get event list
+            if course == "scy":
+                event_list = SCY_EVENTS
+            elif course == "lcm":
+                event_list = LCM_EVENTS
+            elif course == "scm":
+                event_list = SCM_EVENTS
+            else:
+                return
+
+            # Group by age group
+            for age_group in AGE_GROUPS:
+                age_group_has_data = False
+
+                # Check if this age group has any data
+                for event_code in event_list:
+                    if event_code in season_records:
+                        if age_group in season_records[event_code]:
+                            age_group_has_data = True
+                            break
+
+                if not age_group_has_data:
+                    continue
+
+                f.write(f"### {age_group}\n\n")
+                f.write("| Event | Time | Athlete | Age | Date | Meet |\n")
+                f.write("|-------|------|---------|-----|------|------|\n")
+
+                for event_code in event_list:
+                    if event_code not in season_records:
+                        continue
+                    if age_group not in season_records[event_code]:
+                        continue
+
+                    event_name = format_event_name(event_code)
+                    record = season_records[event_code][age_group]
+
+                    athlete_name = record.swimmer_name
+                    if record.swim_type == "probationary":
+                        athlete_name += " ‡"
+
+                    meet = record.meet
+                    if len(meet) > 35:
+                        meet = meet[:32] + "..."
+
+                    f.write(
+                        f"| {event_name} | {record.time} | {athlete_name} | "
+                        f"{record.age} | {record.date} | {meet} |\n"
+                    )
+
+                f.write("\n")
+
+            # Footer
+            f.write("---\n\n")
+            f.write("**Legend:**\n")
+            f.write("- ‡ = Probationary period (before joining team)\n\n")
+            f.write(
+                f"*Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}*\n"
+            )

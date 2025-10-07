@@ -1,5 +1,50 @@
 # Changelog
 
+## [0.5.0] - 2025-10-07
+
+### Added
+- **Top 10 All-Time Lists** (`generate top10`)
+  - Generates top N performers for each event across all age groups
+  - Separate markdown files per event: `data/records/top10/{course}/{event}.md`
+  - Customizable with `--n` option (default: 10)
+  - Ranks swimmers with best time per swimmer (no duplicates)
+  - Includes probationary swim indicators (‡)
+  - Rich progress output and formatted next steps panel
+- **Annual Season Summaries** (`generate annual`)
+  - Generates season-specific summaries with best times
+  - Compares against all-time team records to identify new records
+  - Highlights new records set during the season
+  - Best times by age group for the season
+  - Requires `--season` parameter (e.g., `--season=2024`)
+  - Optional `--course` filter for specific course
+  - Saves to `data/records/annual/{year}-{course}.md`
+  - Rich formatted output with tables and panels
+- **Publish Command** (`publish`)
+  - Publishes records to public GitHub repository
+  - Clones or pulls latest from configured PUBLIC_REPO_URL
+  - Copies all markdown files from `data/records/` to public repo
+  - Commits with timestamp and pushes to GitHub
+  - `--dry-run` mode to preview without making changes
+  - Requires git installation and SSH keys configured
+  - Configuration via PUBLIC_REPO_URL and PUBLIC_REPO_LOCAL in .env
+  - Formatted next steps with repo link
+- **Extended RecordGenerator Service**
+  - `get_top_n_by_event()` - Get top N performers across all ages
+  - `generate_top10_markdown()` - Generate top N list markdown
+  - `filter_by_season()` - Filter swims by year
+  - `generate_annual_summary_markdown()` - Generate season summary markdown
+  - Record comparison logic for identifying new records
+
+### Changed
+- Enhanced generate commands with consistent UX patterns
+- All generate commands now show formatted next steps panels
+- Improved markdown formatting for readability
+
+### Documentation
+- Added v0.5.0 implementation plan in artifacts/
+- Updated README with new commands
+- Updated claude.md with v0.5.0 features
+
 ## [0.4.5] - 2025-10-07
 
 ### Added

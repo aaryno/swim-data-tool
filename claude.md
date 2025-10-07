@@ -94,9 +94,13 @@ swim-data-tool/
 │   ├── v0.4.0-generate-records-plan.md
 │   └── v0.4.0-release-summary.md
 │
-├── scratch/                    # Test and debug scripts (not committed)
-│                               # Temporary scripts for development/testing
-│                               # Move core functionality to proper modules when mature
+├── scratch/                    # ⚠️ REQUIRED: ALL test/debug scripts go here (not root!)
+│   ├── README.md               # Explains scratch directory purpose
+│   ├── test_*.py               # Test scripts for API, features, debugging
+│   ├── debug_*.py              # Debugging utilities
+│   └── check_*.py              # Verification scripts
+│                               # Directory is in .gitignore - never committed
+│                               # Move mature code to proper modules when ready
 │
 ├── docs/                       # Project documentation (future)
 ├── examples/                   # Usage examples (future)
@@ -619,10 +623,13 @@ When working on swim-data-tool, AI assistants must follow these rules:
 2. **Root Directory Protection**: Do NOT create markdown files in the project root without explicit user approval
 3. **Existing Files Only**: Only modify existing root-level files (README.md, CHANGELOG.md, claude.md) when necessary
 4. **Naming Convention**: Use descriptive kebab-case names for artifacts
-5. **Test/Debug Scripts**: Place temporary test and debug scripts in `scratch/` directory (not committed)
-   - Quick API tests, debugging scripts, one-off experiments
-   - `scratch/` is in `.gitignore`
-   - Move functionality to proper modules when mature
+5. **Test/Debug Scripts**: ⚠️ **MUST** use `scratch/` directory for ALL test/debug scripts
+   - **Required location**: `scratch/` directory (not project root)
+   - **Purpose**: Quick API tests, debugging scripts, one-off experiments, development iteration
+   - **Automatic**: `scratch/` is in `.gitignore` - contents never committed
+   - **Workflow**: Test ideas in `scratch/`, then move mature code to proper modules
+   - **Examples**: All test_*.py, debug_*.py, check_*.py scripts belong in `scratch/`
+   - **Rule**: If it's not part of the production package, it goes in `scratch/`
 6. **⚠️ CRITICAL: Never run interactive commands via `run_terminal_cmd`**
    - **Problem:** Interactive tools block the terminal session and prevent output capture
    - **When:** Any command that prompts for user input (e.g., `swim-data-tool init`)
@@ -647,6 +654,30 @@ Store in `artifacts/`:
 - Release summaries
 - Session summaries for testing
 
+### Test/Debug Scripts
+
+⚠️ **CRITICAL**: ALL test and debug scripts MUST go in `scratch/` directory, **NOT** in the project root!
+
+**Store in `scratch/`:**
+- Test scripts (`test_*.py`)
+- Debug scripts (`debug_*.py`)
+- Verification scripts (`check_*.py`)
+- One-off experiments
+- Development iteration scripts
+- API testing utilities
+
+**Why `scratch/`:**
+- Keeps root directory clean
+- Already in `.gitignore` - never committed
+- Easy to find and manage temporary scripts
+- Clear separation from production code
+
+**Workflow:**
+1. Create test script in `scratch/`
+2. Iterate and debug
+3. Move functionality to proper module when mature
+4. Delete or archive obsolete scripts
+
 ### Protected Files
 
 Only modify these root files when needed:
@@ -654,6 +685,7 @@ Only modify these root files when needed:
 - `CHANGELOG.md` - Version history (update on releases)
 - `claude.md` - AI development context (update on major changes)
 - `VERSION` - Version number (update on releases)
+- **NO .py files in root** - use `scratch/` or `src/` instead
 
 ---
 
@@ -709,9 +741,10 @@ swim-data-tool config
 ### File Locations
 
 - Source code: `src/swim_data_tool/`
-- Tests: `tests/`
-- Templates: `templates/`
+- Tests: `tests/` (pytest unit tests)
+- Templates: `templates/` (init templates)
 - Artifacts: `artifacts/` (AI-generated docs)
+- **Scratch: `scratch/`** (temp test/debug scripts - use this!)
 - Virtual environment: `.venv/`
 
 ### Important Files

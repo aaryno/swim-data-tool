@@ -228,5 +228,78 @@ def generate_records(ctx: click.Context, course: str | None) -> None:
     cmd.run()
 
 
+@generate.command(name="top10")
+@click.option(
+    "--course",
+    type=click.Choice(["scy", "lcm", "scm"], case_sensitive=False),
+    help="Generate top 10 for specific course (default: all)",
+)
+@click.option(
+    "--n",
+    type=int,
+    default=10,
+    help="Number of swimmers to include (default: 10)",
+)
+@click.pass_context
+def generate_top10(ctx: click.Context, course: str | None, n: int) -> None:
+    """Generate top N all-time performer lists.
+
+    \b
+    Examples:
+        swim-data-tool generate top10
+        swim-data-tool generate top10 --course=scy
+        swim-data-tool generate top10 --n=25
+    """
+    from swim_data_tool.commands.generate import GenerateTop10Command
+
+    cmd = GenerateTop10Command(ctx.obj["cwd"], course, n)
+    cmd.run()
+
+
+@generate.command(name="annual")
+@click.option(
+    "--season",
+    type=int,
+    required=True,
+    help="Season year (e.g., 2024)",
+)
+@click.option(
+    "--course",
+    type=click.Choice(["scy", "lcm", "scm"], case_sensitive=False),
+    help="Generate for specific course (default: all)",
+)
+@click.pass_context
+def generate_annual(ctx: click.Context, season: int, course: str | None) -> None:
+    """Generate annual season summary.
+
+    \b
+    Examples:
+        swim-data-tool generate annual --season=2024
+        swim-data-tool generate annual --season=2024 --course=scy
+        swim-data-tool generate annual --season=2023
+    """
+    from swim_data_tool.commands.generate import GenerateAnnualCommand
+
+    cmd = GenerateAnnualCommand(ctx.obj["cwd"], season, course)
+    cmd.run()
+
+
+@main.command()
+@click.option("--dry-run", is_flag=True, help="Show what would be published without making changes")
+@click.pass_context
+def publish(ctx: click.Context, dry_run: bool) -> None:
+    """Publish records to public GitHub repository.
+
+    \b
+    Examples:
+        swim-data-tool publish
+        swim-data-tool publish --dry-run
+    """
+    from swim_data_tool.commands.publish import PublishCommand
+
+    cmd = PublishCommand(ctx.obj["cwd"], dry_run)
+    cmd.run()
+
+
 if __name__ == "__main__":
     main()
