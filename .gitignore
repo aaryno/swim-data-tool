@@ -56,3 +56,7 @@ logs/
 temp/
 tmp/
 *.tmp
+
+# Artifacts (AI-generated docs, allow README only)
+artifacts/*
+!artifacts/README.md

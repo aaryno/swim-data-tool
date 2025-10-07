@@ -1,9 +1,11 @@
 """CLI framework for swim-data-tool."""
 
-import click
 from pathlib import Path
+
+import click
 from dotenv import load_dotenv
 from rich.console import Console
+
 from swim_data_tool.version import __version__
 
 console = Console()
@@ -14,7 +16,7 @@ console = Console()
 @click.pass_context
 def main(ctx: click.Context) -> None:
     """Swim Data Tool - Manage swim team records and statistics.
-    
+
     A CLI tool for collecting, processing, and analyzing swim team data from
     USA Swimming and World Aquatics APIs.
     """
@@ -22,7 +24,7 @@ def main(ctx: click.Context) -> None:
     env_path = Path.cwd() / ".env"
     if env_path.exists():
         load_dotenv(env_path)
-    
+
     # Store context for subcommands
     ctx.ensure_object(dict)
     ctx.obj["cwd"] = Path.cwd()
@@ -34,14 +36,14 @@ def main(ctx: click.Context) -> None:
 @click.pass_context
 def init(ctx: click.Context, team_name: str) -> None:
     """Initialize a new team repository.
-    
+
     \b
     Examples:
         swim-data-tool init "Tucson Ford Dealers Aquatics"
         swim-data-tool init "Pikes Peak Athletics"
     """
     from swim_data_tool.commands.init import InitCommand
-    
+
     console.print(f"\n[bold cyan]🏊 Initializing repository for:[/bold cyan] {team_name}\n")
     cmd = InitCommand(team_name, ctx.obj["cwd"])
     cmd.run()
@@ -52,7 +54,7 @@ def init(ctx: click.Context, team_name: str) -> None:
 def status(ctx: click.Context) -> None:
     """Show current status and configuration."""
     from swim_data_tool.commands.status import StatusCommand
-    
+
     cmd = StatusCommand(ctx.obj["cwd"])
     cmd.run()
 
@@ -62,7 +64,7 @@ def status(ctx: click.Context) -> None:
 def config(ctx: click.Context) -> None:
     """View current configuration from .env file."""
     from swim_data_tool.commands.status import ConfigCommand
-    
+
     cmd = ConfigCommand(ctx.obj["cwd"])
     cmd.run()
 

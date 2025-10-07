@@ -4,9 +4,9 @@
 
 **swim-data-tool** is a modern Python CLI tool for swim team record management. It provides a unified interface for collecting, processing, and analyzing swim data from USA Swimming and World Aquatics APIs.
 
-**Current Version:** 0.0.1 (Initial framework)
+**Current Version:** 0.1.0
 
-**Status:** 🚧 Under active development - CLI framework complete, commands are stubs
+**Status:** ✅ Init command implemented - Ready to initialize team repositories!
 
 ---
 
@@ -30,28 +30,30 @@
 
 ```
 swim-data-tool/
-├── pyproject.toml              # Project configuration (replaces setup.py)
-├── VERSION                     # Semantic version (0.0.1)
+├── pyproject.toml              # Project configuration (PEP 517/518)
+├── VERSION                     # Semantic version (0.1.0)
 ├── README.md                   # User documentation
 ├── CHANGELOG.md                # Version history
 ├── LICENSE                     # MIT license
+├── claude.md                   # This file - AI development context
 ├── .gitignore                  # Git ignore patterns
 │
 ├── src/
 │   └── swim_data_tool/         # Main package (underscores)
 │       ├── __init__.py         # Package initialization
 │       ├── __main__.py         # Entry point for python -m swim_data_tool
-│       ├── version.py          # Version information
-│       ├── cli.py              # CLI framework and commands
+│       ├── version.py          # Version information (reads VERSION file)
+│       ├── cli.py              # CLI framework and main command group
 │       ├── py.typed            # PEP 561 type hints marker
 │       │
 │       ├── api/                # API clients
-│       │   └── __init__.py
+│       │   ├── __init__.py
+│       │   └── usa_swimming.py # USA Swimming API client + TeamInfo model
 │       │
 │       ├── commands/           # CLI command implementations
 │       │   ├── __init__.py
-│       │   ├── init.py        # Team initialization (stub)
-│       │   └── status.py      # Status and config commands (working)
+│       │   ├── init.py         # Team initialization (IMPLEMENTED)
+│       │   └── status.py       # Status and config commands (working)
 │       │
 │       ├── models/             # Data models
 │       │   └── __init__.py
@@ -59,19 +61,35 @@ swim-data-tool/
 │       └── utils/              # Utility functions
 │           └── __init__.py
 │
-├── templates/                  # Initialization templates (TODO)
+├── templates/                  # Initialization templates
+│   ├── env.template            # Environment configuration template
+│   ├── .gitignore.template     # Git ignore template for teams
+│   ├── README.md.template      # Team README template
+│   ├── claude.md.template      # Team AI context template
+│   └── gitkeep.template        # Directory preservation template
+│
 ├── tests/                      # Test suite
 │   ├── __init__.py
-│   └── conftest.py            # Pytest fixtures
+│   ├── conftest.py             # Pytest fixtures
+│   ├── test_api/               # API tests
+│   │   └── __init__.py
+│   ├── test_commands/          # Command tests
+│   │   ├── __init__.py
+│   │   └── test_init.py        # Init command tests (8 passing)
+│   └── test_models/            # Model tests
+│       └── __init__.py
 │
-├── docs/                       # Documentation (TODO)
-├── examples/                   # Usage examples (TODO)
+├── artifacts/                  # AI-generated documentation and artifacts
+│                               # (task lists, design docs, notes)
+│
+├── docs/                       # Project documentation (future)
+├── examples/                   # Usage examples (future)
 └── .venv/                      # Virtual environment (not committed)
 ```
 
 ---
 
-## Current State (v0.0.1)
+## Current State (v0.1.0)
 
 ### ✅ Complete
 
@@ -83,66 +101,101 @@ swim-data-tool/
 
 2. **CLI Framework**
    - `click` command structure
-   - `rich` terminal output
+   - `rich` terminal output with panels and prompts
    - Version command (`--version`)
    - Help system (`--help`)
 
 3. **Working Commands**
-   - `swim-data-tool status` - Shows current configuration
-   - `swim-data-tool config` - Displays .env file
-   - Both check for `.env` and guide user to init if missing
+   - ✅ **`swim-data-tool init <team-name>`** - Initialize new team repositories
+     - Interactive prompts for team information
+     - Creates complete directory structure
+     - Generates all configuration files from templates
+     - Automatic version tracking
+   - ✅ `swim-data-tool status` - Shows current configuration
+   - ✅ `swim-data-tool config` - Displays .env file
 
-4. **Placeholder Commands** (stubs with "Coming soon" messages)
-   - `swim-data-tool init <team-name>`
-   - `swim-data-tool import swimmers --src=<source>`
-   - `swim-data-tool import swimmer <name>`
-   - `swim-data-tool classify unattached`
-   - `swim-data-tool generate records`
-
-5. **Development Tools**
-   - Test framework (pytest)
-   - Linting configuration (ruff)
-   - Type checking (mypy)
-   - Basic .gitignore
-
-### 🚧 TODO for v0.1.0
-
-1. **Implement `init` command**
-   - Search USA Swimming API for team
-   - Discover team codes, SwimCloud ID, LSC
-   - Create directory structure
-   - Generate `.env` file from template
-   - Generate `README.md`, `claude.md`, `.gitignore`
-   - Create `.swim-data-tool-version` file
-
-2. **Create templates/**
-   - `.env.template` - Environment variables with placeholders
+4. **Template System**
+   - `env.template` - Environment variables with placeholders
    - `.gitignore.template` - Standard ignore patterns
    - `README.md.template` - Club repository documentation
    - `claude.md.template` - AI assistant context for clubs
-   - `directory_structure.json` - Data folder layout definition
+   - `gitkeep.template` - Preserve empty directories
 
-3. **Implement import commands**
-   - USA Swimming API client
+5. **API Foundation**
+   - USA Swimming API client structure (manual entry flow for now)
+   - TeamInfo dataclass model
+   - Ready for future API integration
+
+6. **Testing & Quality**
+   - Test framework (pytest + pytest-cov)
+   - Tests for init command and templates
+   - Linting configuration (ruff)
+   - Type checking (mypy)
+   - GitHub Actions CI/CD (tests, linting, type checking)
+   - All tests passing
+
+### 🚧 TODO for v0.2.0
+
+1. **Implement import commands**
+   - USA Swimming API client (actual API calls)
    - World Aquatics scraper
    - Swimmer data collection
    - Meet results collection
    - Progress tracking and resumability
 
-4. **Implement classify command**
+### 🚧 TODO for v0.3.0
+
+1. **Implement classify command**
    - Unattached swim classification logic
    - Probationary vs other categorization
-   - Ford affiliation rules
+   - Team affiliation rules
 
-5. **Implement generate command**
+### 🚧 TODO for v0.4.0
+
+1. **Implement generate command**
    - Record generation by course/age group/event
    - Top 10 lists
    - Annual summaries
 
-6. **Testing**
-   - Unit tests for all commands
-   - API client tests (mocked)
-   - CLI integration tests
+### 🚧 TODO for v0.5.0
+
+1. **Implement publish command**
+   - Publish records to public repository
+   - Git integration
+   - Dry-run mode
+
+---
+
+## Documentation & Artifact Guidelines
+
+### AI Assistant Rules
+
+**⚠️ IMPORTANT: No markdown files in root without approval**
+
+When working on swim-data-tool, AI assistants must follow these rules:
+
+1. **Artifact Location**: All AI-generated documentation, task lists, design documents, and notes MUST go in `artifacts/`
+2. **Root Directory Protection**: Do NOT create markdown files in the project root without explicit user approval
+3. **Existing Files Only**: Only modify existing root-level files (README.md, CHANGELOG.md, claude.md) when necessary
+4. **Naming Convention**: Use descriptive kebab-case names for artifacts (e.g., `task-list-v0.2.0.md`, `api-design-notes.md`)
+
+### Artifact Types
+
+Store in `artifacts/`:
+- Task lists and TODO tracking
+- Design documents and ADRs (Architecture Decision Records)
+- Feature planning documents
+- Implementation notes
+- Migration plans
+- Research and analysis documents
+
+### Protected Files
+
+Only modify these root files when needed:
+- `README.md` - User-facing documentation
+- `CHANGELOG.md` - Version history (update on releases)
+- `claude.md` - AI development context (update on major changes)
+- `VERSION` - Version number (update on releases)
 
 ---
 
@@ -214,6 +267,17 @@ uv build
 
 # Result: dist/swim_data_tool-0.0.1-py3-none-any.whl
 ```
+
+### CI/CD
+
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push and pull requests:
+
+**Jobs:**
+- **test**: Runs pytest with coverage on Python 3.11 and 3.12
+- **lint**: Runs ruff linting and formatting checks
+- **type-check**: Runs mypy type checking
+
+**Triggers:** Push to main/develop branches, all pull requests
 
 ---
 
@@ -446,12 +510,16 @@ GitHub (public records repo)
 
 ## Migration Plan
 
-### Phase 1: Complete swim-data-tool ✅ DONE (v0.0.1 framework)
+### Phase 1: Complete swim-data-tool core ✅ DONE (v0.1.0)
 
 - ✅ Project structure
 - ✅ CLI framework
-- ✅ Basic commands
-- 🚧 Implement remaining commands (v0.1.0)
+- ✅ Init command with templates
+- ✅ Status and config commands
+- 🚧 Import commands (v0.2.0)
+- 🚧 Classify command (v0.3.0)
+- 🚧 Generate command (v0.4.0)
+- 🚧 Publish command (v0.5.0)
 
 ### Phase 2: Setup SWAS
 
@@ -480,9 +548,9 @@ Only after SWAS works perfectly
 - **v1.0.0**: First stable release
 
 **Version Tracking:**
-- `VERSION` file in tools repo
-- `.swim-data-tool-version` in each club repo
-- Tool warns if versions don't match
+- `VERSION` file in tools repo (currently 0.1.0)
+- `.swim-data-tool-version` in each club repo (auto-created by init)
+- Tool warns if versions don't match (future feature)
 
 ---
 
@@ -537,8 +605,10 @@ uv run mypy src/
 
 - Source code: `src/swim_data_tool/`
 - Tests: `tests/`
-- Templates: `templates/` (to be created)
-- Documentation: `docs/` (to be created)
+- Templates: `templates/`
+- Artifacts: `artifacts/` (AI-generated docs, task lists, notes)
+- Documentation: `docs/` (future permanent docs)
+- Examples: `examples/` (future usage examples)
 - Virtual environment: `.venv/`
 
 ### Important Files
@@ -585,24 +655,28 @@ uv run mypy src/
 
 ## Known Issues / TODO
 
-### Current
-- [ ] No templates yet (needed for init command)
-- [ ] No API clients implemented
-- [ ] No tests written yet
-- [ ] Commands are stubs
-
-### For v0.1.0
-- [ ] Implement init command
-- [ ] Create all templates
+### Current (v0.1.0)
+- [x] Templates created and working
+- [x] Init command fully implemented
+- [x] Tests for init command
+- [x] Comprehensive README updated
+- [ ] Add integration tests for full init workflow
 - [ ] Add tests for status/config commands
-- [ ] Create comprehensive README
+
+### For v0.2.0
+- [ ] Implement actual USA Swimming API integration
+- [ ] Implement World Aquatics scraper
+- [ ] Add import swimmers command
+- [ ] Add import swimmer command
+- [ ] Progress tracking and resumability
+- [ ] Add more comprehensive tests
 
 ### Future
 - [ ] API rate limiting handling
 - [ ] Caching for API responses
-- [ ] Data validation
-- [ ] Error recovery
-- [ ] Internationalization support
+- [ ] Data validation and error recovery
+- [ ] Version compatibility checking
+- [ ] Multi-language support for international teams
 
 ---
 
@@ -630,4 +704,4 @@ uv run mypy src/
 ---
 
 **Last Updated:** 2025-10-07
-**Version:** 0.0.1
+**Version:** 0.1.0
