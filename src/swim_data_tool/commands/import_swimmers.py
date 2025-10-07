@@ -73,13 +73,12 @@ class ImportSwimmersCommand:
 
         console.print("\n[bold cyan]Import Swimmers[/bold cyan]\n")
         console.print(f"  CSV File: {self.csv_file}")
-        console.print(f"  Swimmers: {len(swimmers_df)}")
+        console.print(f"  Swimmers in roster: {len(swimmers_df)}")
         console.print(f"  Years: {start_year}-{end_year}")
         console.print(f"  Output: {swimmers_dir}\n")
 
         # Check existing files
         existing = self._get_existing_swimmer_files(swimmers_dir)
-        console.print(f"  Existing cached: {len(existing)} swimmers")
 
         # Determine what to download
         to_download = []
@@ -88,8 +87,16 @@ class ImportSwimmersCommand:
             if person_key not in existing:
                 to_download.append((person_key, row["FullName"]))
 
-        console.print(f"  Need to download: {len(to_download)} swimmers")
-        console.print(f"  Skipping: {len(existing)} swimmers\n")
+        # Calculate breakdown
+        already_cached = len(existing)
+        will_download = len(to_download)
+        already_attempted = len(swimmers_df) - already_cached - will_download
+        
+        console.print(f"  Already cached: {already_cached} swimmers (have data files)")
+        console.print(f"  Will attempt: {will_download} swimmers (not yet tried)")
+        if already_attempted > 0:
+            console.print(f"  Previously attempted: {already_attempted} swimmers (had no data)")
+        console.print()
 
         if not to_download:
             console.print("[green]✓ All swimmers already cached![/green]\n")
