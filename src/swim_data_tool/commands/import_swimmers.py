@@ -64,6 +64,15 @@ class ImportSwimmersCommand:
                 "[yellow]⚠️  CSV file missing 'FullName' column (will use PersonKey)[/yellow]\n"
             )
             swimmers_df["FullName"] = swimmers_df["PersonKey"].astype(str)
+        
+        # Filter out relay entries (PersonKey=0) and only-relay swimmers
+        # TODO: Future enhancement - recognize individuals in relay results
+        #       When generating team records, top 10 lists, or annual analysis,
+        #       we should parse relay names to credit individual swimmers.
+        #       This will require name matching against known swimmers.
+        total_entries = len(swimmers_df)
+        swimmers_df = swimmers_df[swimmers_df["PersonKey"] != 0].copy()
+        relay_entries = total_entries - len(swimmers_df)
 
         # Get configuration
         start_year = int(os.getenv("START_YEAR", "1998"))
@@ -73,7 +82,10 @@ class ImportSwimmersCommand:
 
         console.print("\n[bold cyan]Import Swimmers[/bold cyan]\n")
         console.print(f"  CSV File: {self.csv_file}")
-        console.print(f"  Swimmers in roster: {len(swimmers_df)}")
+        console.print(f"  Total entries in roster: {total_entries}")
+        console.print(f"  Individual swimmers: {len(swimmers_df)}")
+        if relay_entries > 0:
+            console.print(f"  Relay-only entries: {relay_entries} (skipped)")
         console.print(f"  Years: {start_year}-{end_year}")
         console.print(f"  Output: {swimmers_dir}\n")
 

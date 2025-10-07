@@ -614,6 +614,11 @@ class USASwimmingAPI:
                 SwimCount=("SwimDate", "count")
             ).reset_index()
             
+            # Note: Relay entries (PersonKey=0) are included in the roster
+            # but will be skipped during import since they don't have individual PersonKeys.
+            # TODO: Future enhancement - parse relay names to identify swimmers who only
+            #       appear in relays, then search USA Swimming to find their PersonKeys.
+            
             # Sort by most recent activity
             roster = roster.sort_values("LastSwimDate", ascending=False)
             
