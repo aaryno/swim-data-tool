@@ -1,0 +1,77 @@
+[project]
+name = "swim-data-tool"
+version = "0.0.1"
+description = "CLI tool for swim team record management"
+authors = [{name = "Aaryn Rosenberg"}]
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+keywords = ["swimming", "records", "usa-swimming", "sports-analytics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "click>=8.1.0",
+    "requests>=2.28.0",
+    "pandas>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "rich>=13.0.0",
+    "beautifulsoup4>=4.11.0",
+    "lxml>=4.9.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.3.0",
+    "mypy>=1.9.0",
+    "types-requests",
+    "types-beautifulsoup4",
+    "types-pyyaml",
+]
+
+[project.scripts]
+swim-data-tool = "swim_data_tool.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/aaryno/swim-data-tool"
+Repository = "https://github.com/aaryno/swim-data-tool"
+Issues = "https://github.com/aaryno/swim-data-tool/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.3.0",
+    "mypy>=1.9.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+addopts = "-v --cov=swim_data_tool --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/swim_data_tool"]
