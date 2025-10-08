@@ -267,9 +267,18 @@ class PublishCommand:
         
         readme_content = f"""# {self.team_name} - Swimming Records
 
-Official team records automatically generated from USA Swimming data.
+## ⚠️ UNOFFICIAL RECORDS - INTERNAL REVIEW ONLY
+
+**These records are UNOFFICIAL and automatically generated from USA Swimming data.**
+
+- **For internal team review only**
+- **Requires verification by club administrators before official use**
+- **May contain errors or missing data**
+- **Not approved for external distribution or official team use**
 
 **Last Updated:** {update_date}
+
+---
 
 ## Team Records
 
@@ -317,7 +326,19 @@ Official team records automatically generated from USA Swimming data.
 
 ## About
 
-This repository contains public team records for {self.team_name}. All data is sourced from USA Swimming official results.
+This repository contains **UNOFFICIAL** team records for {self.team_name}. All data is sourced from USA Swimming official results.
+
+### ⚠️ Important Disclaimers
+
+**UNOFFICIAL STATUS:** These records are automatically generated and have NOT been verified or approved by club administrators. They are provided for internal team review and analysis only.
+
+**VERIFICATION REQUIRED:** Before using these records for any official purpose, they MUST be reviewed and approved by club administrators.
+
+**NO WARRANTY:** These records may contain errors, omissions, or discrepancies. The tool and data are provided "as-is" without warranty of any kind.
+
+**INTERNAL USE ONLY:** Not approved for external distribution, official team communications, or meet submissions.
+
+### Privacy & Data
 
 **Privacy:** This repository contains no personally identifiable information (PII). Only team records, times, and public results are included.
 

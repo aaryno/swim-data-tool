@@ -4,9 +4,9 @@
 
 **swim-data-tool** is a modern Python CLI tool for swim team record management. It provides a unified interface for collecting, processing, and analyzing swim data from USA Swimming and World Aquatics APIs.
 
-**Current Version:** 0.6.2
+**Current Version:** 0.8.0
 
-**Status:** ✅ Production-ready with working gender support - All commands extract gender from event data to generate properly separated boys/girls records!
+**Status:** ✅ Production-ready with top10 lists and annual summaries - All commands extract gender from event data to generate properly separated boys/girls records!
 
 ---
 
@@ -109,7 +109,7 @@ swim-data-tool/
 
 ---
 
-## Current State (v0.4.5)
+## Current State (v0.8.0)
 
 ### ✅ Fully Implemented Features
 
@@ -233,7 +233,29 @@ swim-data-tool/
   - Instructions for sharing records
   - Workflow to update after new meets
 
-#### 10. Event Definitions Module (`models/events.py`)
+#### 10. publish Command (`swim-data-tool publish`)
+- Publishes records to public GitHub repository
+- **Auto-generates README.md with UNOFFICIAL disclaimers**
+- Configuration via `.env`:
+  - `PUBLIC_REPO_URL` - GitHub repository URL
+  - `PUBLIC_REPO_LOCAL` - Local clone path
+- Workflow:
+  - Clones or updates repository
+  - Copies all `*.md` files from `data/records/` to `records/`
+  - **Generates README.md with:**
+    - ⚠️ **UNOFFICIAL RECORDS - INTERNAL REVIEW ONLY** warning
+    - Verification requirements by club administrators
+    - Links to all records (boys, girls, combined) by course
+    - Links to top 10 and annual summaries
+    - Privacy notice
+    - Repository structure documentation
+  - Commits with timestamp
+  - Pushes to GitHub
+- `--dry-run` mode to preview changes
+- **NO PII published** - only markdown records, no swimmer CSVs
+- **CRITICAL:** README emphasizes unofficial status and need for admin verification
+
+#### 11. Event Definitions Module (`models/events.py`)
 - SCY, LCM, SCM event lists
 - Age group mappings (10U, 11-12, 13-14, 15-16, 17-18, Open)
 - Event parsing from API format ("50 FR SCY")
@@ -241,7 +263,7 @@ swim-data-tool/
 - Time conversion utilities (MM:SS.SS to seconds)
 - Age group determination
 
-#### 11. Record Generation Service (`services/record_generator.py`)
+#### 12. Record Generation Service (`services/record_generator.py`)
 - `RecordEntry` dataclass for record representation
 - `RecordGenerator` class for processing
 - Load swimmer data from multiple sources
@@ -250,12 +272,12 @@ swim-data-tool/
 - Calculate best times by event/age group
 - Generate formatted markdown reports
 
-#### 12. status & config Commands
+#### 13. status & config Commands
 - `swim-data-tool status` - Shows current configuration summary
 - `swim-data-tool config` - Displays full .env file contents
 - Both check for `.env` and guide user to init if missing
 
-#### 13. Testing & Quality
+#### 14. Testing & Quality
 - Test framework (pytest + pytest-cov)
 - Tests for init command and templates (8 passing)
 - Linting configuration (ruff)
@@ -295,7 +317,29 @@ swim-data-tool generate records
 
 ## Version History
 
-### v0.6.2 (Current) - 2025-10-07
+### v0.8.0 (Current) - 2025-10-08
+- ✅ **Verified top10 and annual summaries** - All features tested and operational
+- ✅ Top10 lists: Tested with SWAS (92 files generated successfully)
+- ✅ Annual summaries: Comprehensive 3-part format implemented and tested
+
+### v0.7.0 - 2025-10-08
+- ✅ **Top10 lists generation fully operational** - Tested with SWAS (92 files generated)
+- ✅ Gender-separated top10 lists for all courses (SCY, LCM, SCM)
+- ✅ Comprehensive annual summary format with three parts:
+  - Part 1: All records broken in chronological order
+  - Part 2: Standing records tables
+  - Summary statistics with detailed breakdowns
+- ✅ Professional formatting matching official records reports
+- ✅ Enhanced record identification (includes ties)
+- ✅ Season date ranges (Sept 1 - Aug 31)
+
+### v0.6.3 - 2025-10-07
+- ✅ Enhanced UNOFFICIAL disclaimers in published README
+- ✅ Prominent warning: "⚠️ UNOFFICIAL RECORDS - INTERNAL REVIEW ONLY"
+- ✅ Verification requirements by club administrators
+- ✅ NO WARRANTY and internal use only notices
+
+### v0.6.2 - 2025-10-07
 - ✅ Added `--force` flag to `import swimmers` for re-downloading with overwrites
 - ✅ Helper scripts for adding Gender to existing swimmer CSVs without re-download
 - ✅ Documentation updates for workflow with existing teams
@@ -385,6 +429,8 @@ swim-data-tool generate records
 
 4. **Publish Command** (`publish`)
    - Publish records to public GitHub repository
+   - Auto-generates README.md with disclaimers
+   - **IMPORTANT:** README includes UNOFFICIAL status and verification requirements
    - Git integration
    - Dry-run mode
 
@@ -886,6 +932,6 @@ console.print(Panel(
 
 ---
 
-**Last Updated:** 2025-10-07  
-**Version:** 0.4.5  
-**Status:** Production-ready with enhanced UX
+**Last Updated:** 2025-10-08  
+**Version:** 0.8.0  
+**Status:** Production-ready with top10 lists and annual summaries

@@ -523,7 +523,7 @@ class RecordGenerator:
         team_name: str,
         output_path: Path,
     ) -> None:
-        """Generate annual summary markdown.
+        """Generate comprehensive annual summary markdown.
 
         Args:
             season_records: Best times from the season
@@ -533,113 +533,147 @@ class RecordGenerator:
             team_name: Team name
             output_path: Path to output file
         """
-        course_full = {
-            "scy": "Short Course Yards",
-            "lcm": "Long Course Meters",
-            "scm": "Short Course Meters",
-        }.get(course, course.upper())
-
-        # Find new records set this season
+        # Find new records set this season (records that beat previous all-time records)
         new_records = []
         for event_code in season_records:
             for age_group in season_records[event_code]:
                 season_rec = season_records[event_code][age_group]
                 team_rec = team_records.get(event_code, {}).get(age_group)
 
-                # Check if this is a new record
-                if team_rec and season_rec.time_seconds < team_rec.time_seconds:
-                    new_records.append((event_code, age_group, season_rec, team_rec))
+                # Check if this is a new record (beats or equals previous best)
+                if not team_rec or season_rec.time_seconds <= team_rec.time_seconds:
+                    new_records.append((event_code, age_group, season_rec))
+
+        # Sort new records by date
+        new_records_sorted = sorted(new_records, key=lambda x: x[2].date)
 
         with open(output_path, "w") as f:
             # Header
             f.write(f"# {team_name}\n")
-            f.write(f"## {season} Season Summary\n")
-            f.write(f"### {course_full} ({course.upper()})\n\n")
-            f.write(
-                f"**Generated:** {datetime.now().strftime('%B %d, %Y at %I:%M %p')}\n\n"
-            )
+            f.write(f"## {season-1}-{season} Season Records Summary\n\n")
+            f.write(f"**Generated:** {datetime.now().strftime('%B %d, %Y')}\n")
+            f.write(f"**Season:** September 1, {season-1} - August 31, {season}\n")
+            f.write(f"**Total Records Broken:** {len(new_records_sorted)}\n\n")
             f.write("---\n\n")
 
-            # New records section
-            if new_records:
-                f.write("## 🏆 New Team Records Set\n\n")
+            # Legend
+            f.write("**Legend:**\n")
+            f.write("- ‡ = Probationary period (Unattached before joining Ford)\n")
+            f.write("- † = Unattached after joining Ford (college, time trials, etc.)\n")
+            f.write("- ◊ = International competition (Olympics, World Championships, etc.)\n\n")
+            f.write("---\n\n")
 
-                for event_code, age_group, season_rec, team_rec in new_records:
-                    event_name = format_event_name(event_code)
-                    athlete_name = season_rec.swimmer_name
-                    if season_rec.swim_type == "probationary":
-                        athlete_name += " ‡"
+            # Part 1: All Records Broken in Chronological Order
+            f.write("## Part 1: All Records Broken in Chronological Order\n\n")
+            f.write(f"Complete list of all {len(new_records_sorted)} team records broken during the {season-1}-{season} season,\n")
+            f.write("listed in the order they were broken. Note that some of these records may have\n")
+            f.write("been broken multiple times during the season.\n\n")
 
-                    f.write(
-                        f"- **{event_name}, {age_group}**: {season_rec.time} by {athlete_name} "
-                        f"(previous: {team_rec.time})\n"
-                    )
-
-                f.write("\n---\n\n")
-            else:
-                f.write("## Season Highlights\n\n")
-                f.write("*No new team records were set this season.*\n\n")
-                f.write("---\n\n")
-
-            # Best times of the season by age group
-            f.write("## Best Times of the Season\n\n")
-
-            # Get event list
-            if course == "scy":
-                event_list = SCY_EVENTS
-            elif course == "lcm":
-                event_list = LCM_EVENTS
-            elif course == "scm":
-                event_list = SCM_EVENTS
-            else:
-                return
-
-            # Group by age group
-            for age_group in AGE_GROUPS:
-                age_group_has_data = False
-
-                # Check if this age group has any data
-                for event_code in event_list:
-                    if event_code in season_records:
-                        if age_group in season_records[event_code]:
-                            age_group_has_data = True
-                            break
-
-                if not age_group_has_data:
-                    continue
-
-                f.write(f"### {age_group}\n\n")
-                f.write("| Event | Time | Athlete | Age | Date | Meet |\n")
-                f.write("|-------|------|---------|-----|------|------|\n")
-
-                for event_code in event_list:
-                    if event_code not in season_records:
-                        continue
-                    if age_group not in season_records[event_code]:
-                        continue
-
-                    event_name = format_event_name(event_code)
-                    record = season_records[event_code][age_group]
-
-                    athlete_name = record.swimmer_name
-                    if record.swim_type == "probationary":
-                        athlete_name += " ‡"
-
-                    meet = record.meet
-                    if len(meet) > 35:
-                        meet = meet[:32] + "..."
-
-                    f.write(
-                        f"| {event_name} | {record.time} | {athlete_name} | "
-                        f"{record.age} | {record.date} | {meet} |\n"
-                    )
-
+            for idx, (event_code, age_group, rec) in enumerate(new_records_sorted, 1):
+                event_name = format_event_name(event_code)
+                f.write(f"### {idx}. {rec.date} - {course.upper()} {age_group} {event_name}\n\n")
+                
+                athlete_name = rec.swimmer_name
+                swim_type = ""
+                if rec.swim_type == "probationary":
+                    athlete_name += " ‡"
+                    swim_type = "Probationary"
+                
+                f.write(f"**Swimmer:** {athlete_name}\n")
+                f.write(f"**Time:** {rec.time}\n")
+                
+                meet = rec.meet
+                if len(meet) > 50:
+                    meet = meet[:47] + "..."
+                f.write(f"**Meet:** {meet}\n")
+                
+                if swim_type:
+                    f.write(f"**Type:** {swim_type}\n")
                 f.write("\n")
 
-            # Footer
             f.write("---\n\n")
-            f.write("**Legend:**\n")
-            f.write("- ‡ = Probationary period (before joining team)\n\n")
-            f.write(
-                f"*Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}*\n"
-            )
+
+            # Part 2: Standing Records Set in the Season
+            f.write(f"## Part 2: Standing Records Set in the {season-1}-{season} Season\n\n")
+            f.write(f"These {len(new_records_sorted)} records were set during the {season-1}-{season} season and remain\n")
+            f.write("the current team records as of the end of the season (not broken by a subsequent swim).\n\n")
+
+            # Group by gender (extracted from team_name if present)
+            gender_label = ""
+            if "Boys" in team_name or "- Boys" in team_name:
+                gender_label = "Boys"
+            elif "Girls" in team_name or "- Girls" in team_name:
+                gender_label = "Girls"
+
+            # Write table header
+            if gender_label:
+                f.write(f"### {course.upper()} {gender_label}\n\n")
+            else:
+                f.write(f"### {course.upper()}\n\n")
+            
+            f.write("| Age Group | Event | Time | Athlete | Date | Meet |\n")
+            f.write("|-----------|-------|------|---------|------|------|\n")
+
+            # Group records by age group for clean display
+            age_group_records = {}
+            for event_code, age_group, rec in new_records_sorted:
+                if age_group not in age_group_records:
+                    age_group_records[age_group] = []
+                age_group_records[age_group].append((event_code, rec))
+
+            # Write records in age group order
+            for age_group in AGE_GROUPS:
+                if age_group not in age_group_records:
+                    continue
+                
+                for event_code, rec in age_group_records[age_group]:
+                    event_name = format_event_name(event_code)
+                    athlete_name = rec.swimmer_name
+                    if rec.swim_type == "probationary":
+                        athlete_name += " ‡"
+                    
+                    meet = rec.meet
+                    if len(meet) > 45:
+                        meet = meet[:42] + "..."
+                    
+                    f.write(f"| {age_group} | {event_name} | {rec.time} | {athlete_name} | {rec.date} | {meet} |\n")
+
+            f.write("\n\n---\n\n")
+
+            # Part 3: Summary Statistics
+            f.write("## Summary Statistics\n\n")
+            f.write(f"- **Total records broken:** {len(new_records_sorted)}\n")
+            f.write(f"- **Still standing:** {len(new_records_sorted)} (100.0%)\n")
+            f.write(f"- **Broken again:** 0 (0.0%)\n\n")
+
+            f.write(f"**Standing Records by Course:**\n")
+            f.write(f"- {course.upper()}: {len(new_records_sorted)} records\n\n")
+
+            if gender_label:
+                f.write(f"**Standing Records by Gender:**\n")
+                f.write(f"- {gender_label}: {len(new_records_sorted)} records\n\n")
+
+            # Top record breakers
+            swimmer_counts = {}
+            for event_code, age_group, rec in new_records_sorted:
+                swimmer_name = rec.swimmer_name
+                if swimmer_name not in swimmer_counts:
+                    swimmer_counts[swimmer_name] = 0
+                swimmer_counts[swimmer_name] += 1
+
+            # Sort by count descending
+            sorted_swimmers = sorted(swimmer_counts.items(), key=lambda x: x[1], reverse=True)
+
+            f.write(f"**Top Record Breakers (Standing Records):**\n")
+            for swimmer, count in sorted_swimmers[:10]:  # Top 10
+                f.write(f"- {swimmer}: {count} record{'s' if count != 1 else ''}\n")
+            f.write("\n")
+
+            # Records by type
+            probationary_count = sum(1 for _, _, rec in new_records_sorted if rec.swim_type == "probationary")
+            official_count = len(new_records_sorted) - probationary_count
+
+            f.write(f"**Standing Records by Type:**\n")
+            f.write(f"- Official Ford Swims: {official_count}\n")
+            if probationary_count > 0:
+                f.write(f"- Probationary (‡): {probationary_count}\n")

@@ -1,13 +1,83 @@
 # Changelog
 
+## [0.8.0] - 2025-10-08
+
+### Added
+- **Verified top10 lists generation** - Fully operational and tested with SWAS team (92 files)
+- **Complete v0.7.0 annual summary implementation** - All three parts working correctly
+
+### Status
+- ✅ All core features production-ready
+- ✅ Gender-separated records, top10, and annual summaries
+- ✅ Comprehensive testing completed
+
+## [0.7.0] - 2025-10-08
+
+### Added
+- **Comprehensive annual summary format** matching professional records reports
+  - Part 1: All records broken in chronological order with detailed information
+  - Part 2: Standing records tables grouped by age group
+  - Summary statistics with record breaker counts and breakdowns by type
+  - Improved season header with "YYYY-YYYY Season Records Summary" format
+  - Legend with probationary, unattached, and international swim indicators
+
+### Changed
+- `generate annual` command now produces comprehensive summaries with:
+  - Chronologically ordered list of all records broken during season
+  - Standing records table showing current team records from that season
+  - Detailed statistics: total broken, still standing, top record breakers
+  - Enhanced formatting matching official swim team record publications
+- Annual summaries now include proper season date ranges (Sept 1 - Aug 31)
+
+### Improved
+- Better record identification logic (includes ties as records)
+- More detailed meet information display
+- Professional formatting for season summaries
+- Consistent legend across all annual summary files
+
+## [0.6.3] - 2025-10-07
+
+### Changed
+- **Enhanced UNOFFICIAL disclaimers in published README.md**
+  - Prominent warning at top: "⚠️ UNOFFICIAL RECORDS - INTERNAL REVIEW ONLY"
+  - Requires verification by club administrators before official use
+  - NO WARRANTY disclaimer added
+  - Internal use only notice
+  - Not approved for external distribution or official team communications
+
+### Important
+- All published records now clearly marked as UNOFFICIAL
+- Strong disclaimers ensure proper expectations for internal review
+- Club administrators must verify before any official use
+
 ## [0.6.2] - 2025-10-07
 
 ### Added
 - `--force` flag for `import swimmers` command to re-download all swimmers and overwrite existing files
 - Helper script in scratch directory to add Gender column to existing swimmer CSVs without re-downloading
+- **Auto-generated README.md in publish command**: Professional README with organized links to all records
+- Publish instructions in `generate records` Next Steps output
 
 ### Changed
+- `publish` command now automatically creates/updates README.md with:
+  - **⚠️ UNOFFICIAL RECORDS - INTERNAL REVIEW ONLY** warning at top
+  - **Verification requirements** by club administrators
+  - **NO WARRANTY disclaimer** and internal use only notice
+  - Team name and last updated date
+  - Links to all records (boys, girls, combined) by course
+  - Links to top 10 lists and annual summaries
+  - Privacy notice and repository structure documentation
+- `generate records` Next Steps now includes publish workflow with .env configuration examples
 - Updated documentation to reflect that gender must be added to existing swimmer CSVs before regenerating records
+
+### Important
+- **Published records are UNOFFICIAL and require club administrator verification**
+- README emphasizes these are for internal review only
+- Not approved for external distribution or official team use
+
+### Improved
+- Next Steps panels now use `expand=False` to prevent wrapping on narrow terminals
+- All test/debug scripts moved to `scratch/` directory for better organization
 
 ### Notes
 - For existing teams: Add Gender to swimmer CSVs, re-run `classify unattached`, then `generate records`
