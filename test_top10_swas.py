@@ -14,3 +14,4 @@ cmd = GenerateTop10Command(cwd=swas_dir, course=None, n=10)
 cmd.run()
 
 print("\n✅ Done!")
+

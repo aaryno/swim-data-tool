@@ -4,9 +4,9 @@
 
 **swim-data-tool** is a modern Python CLI tool for swim team record management. It provides a unified interface for collecting, processing, and analyzing swim data from USA Swimming and World Aquatics APIs.
 
-**Current Version:** 0.8.0
+**Current Version:** 0.9.0
 
-**Status:** ✅ Production-ready with top10 lists and annual summaries - All commands extract gender from event data to generate properly separated boys/girls records!
+**Status:** ✅ Production-ready with critical bug fixes - Two major roster bugs fixed, improving multi-year roster accuracy and .env configuration loading!
 
 ---
 
@@ -109,7 +109,7 @@ swim-data-tool/
 
 ---
 
-## Current State (v0.8.0)
+## Current State (v0.8.1)
 
 ### ✅ Fully Implemented Features
 
@@ -317,7 +317,26 @@ swim-data-tool generate records
 
 ## Version History
 
-### v0.8.0 (Current) - 2025-10-08
+### v0.9.0 (Current) - 2025-10-08
+- ✅ **Critical bug fix: Roster command not loading .env** - Fixed roster command to properly load .env configuration
+  - Roster command now calls `load_dotenv()` after verifying .env exists
+  - Fixed incorrect year ranges (e.g., "20000-2025" → "2000-2025")
+  - `--seasons=all` flag now works correctly with START_YEAR and END_YEAR from .env
+- ✅ **Critical bug fix: Roster deduplication removing swimmers** - Fixed to group by PersonKey only
+  - Previous bug: Grouping by both PersonKey AND FullName caused name variations to create duplicates
+  - Result: Multi-year rosters now correctly accumulate swimmers (was losing swimmers with each added year)
+  - Example fix: 514 swimmers (2025) + 2024 now gives MORE swimmers, not fewer (was 288, bug fixed)
+- ✅ **API token management documentation** - Added comprehensive guide for token updates
+- ✅ **Fresh API token** - Updated AUTH_TOKEN (2025-10-08)
+
+### v0.8.1 - 2025-10-08
+- ✅ **Enhanced publish README with detailed navigation**
+- ✅ Top10 lists organized by course → gender → individual events
+- ✅ Annual summaries organized by year → course → gender
+- ✅ Direct links to each top10 event file (not just directories)
+- ✅ Better formatting and user experience in published records
+
+### v0.8.0 - 2025-10-08
 - ✅ **Verified top10 and annual summaries** - All features tested and operational
 - ✅ Top10 lists: Tested with SWAS (92 files generated successfully)
 - ✅ Annual summaries: Comprehensive 3-part format implemented and tested
@@ -715,6 +734,33 @@ When working on swim-data-tool, AI assistants must follow these rules:
      - ❌ `vim file.txt` (interactive editor)
      - ✅ `swim-data-tool status` (non-interactive)
      - ✅ `python test_script.py` (if script has no prompts)
+7. **⚠️ CRITICAL: Terminal Output Issues - Context Handoff Strategy**
+   - **Problem:** Sometimes terminal output fails to display (e.g., `pwd` returns empty, commands complete but show no output)
+   - **Symptoms:** Tool indicates "Command completed" but shows no actual output
+   - **Detection:** Try simple commands like `pwd` or `echo "test"` - if no output appears, terminal is broken
+   - **Solution: Create Context Handoff File**
+     - **When:** Detect terminal output failure or user reports inability to see command results
+     - **Action:** Offer to create a context summary file in `artifacts/`
+     - **Format:** `artifacts/context-handoff-YYYY-MM-DD-description.md`
+     - **Contents Include:**
+       - Current task and progress status
+       - What has been completed (with file paths and line numbers)
+       - What remains to be done
+       - Relevant code changes made
+       - Current state of the codebase
+       - Any errors or issues encountered
+       - Commands that should be run next
+       - Environment state (versions, dependencies, etc.)
+     - **Purpose:** User can open this file in a fresh chat window with working terminal
+     - **Benefit:** Avoids re-explaining everything; new session has full context
+   - **Example Response:**
+     > "I'm detecting that terminal output isn't displaying properly. I can create a context handoff file at `artifacts/context-handoff-2025-10-08-annual-summaries.md` that summarizes:
+     > - All changes made so far (annual summary implementation)
+     > - Current status (v0.7.0 implemented, needs testing)
+     > - Next steps (commit and tag v0.8.0)
+     > - Relevant file paths and code locations
+     > 
+     > You can then open this file in a new chat window where the terminal will work properly. Would you like me to create this handoff file?"
 
 ### Artifact Types
 
@@ -763,15 +809,27 @@ Only modify these root files when needed:
 ## Known Limitations & Future Work
 
 ### Current Limitations
+
+#### API Token Expiration ⚠️ IMPORTANT
+- **USA Swimming API token expires periodically** (every few months)
+- **Symptoms:** Swimmer search fails, roster returns no data, imports fail
+- **Solution:** See `docs/UPDATE_API_TOKEN.md` for instructions
+- **Quick fix:** 
+  1. Visit https://data.usaswimming.org/datahub
+  2. Open DevTools → Network tab
+  3. Trigger API call (search for swimmer)
+  4. Copy Bearer token from request headers
+  5. Update `AUTH_TOKEN` in `src/swim_data_tool/api/usa_swimming.py`
+  6. Commit: `git commit -m "fix: update USA Swimming API token (date)"`
+- **Future:** Implement automatic token refresh (requires reverse engineering or headless browser)
+
+#### Other Limitations
 - No World Aquatics integration yet (deferred)
 - Relay entries (PersonKey=0) cannot be imported individually
   - Relays are included in roster for reference
   - Skipped automatically during import
   - Future: parse names and search for individual PersonKeys
 - No relay recognition in records yet (individuals in relay results not credited)
-- No top 10 lists yet (v0.5.0)
-- No annual summaries yet (v0.5.0)
-- No publish command yet (v0.5.0)
 
 ### Planned Improvements
 - **Relay recognition:** Parse relay names, find PersonKeys, credit individuals
@@ -933,5 +991,5 @@ console.print(Panel(
 ---
 
 **Last Updated:** 2025-10-08  
-**Version:** 0.8.0  
-**Status:** Production-ready with top10 lists and annual summaries
+**Version:** 0.9.0  
+**Status:** Production-ready with critical bug fixes

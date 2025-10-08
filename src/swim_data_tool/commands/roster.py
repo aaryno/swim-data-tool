@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -28,6 +29,9 @@ class RosterCommand:
         if not env_file.exists():
             console.print("[red]Error: Not initialized. Run 'swim-data-tool init' first.[/red]")
             return
+        
+        # Load environment variables from .env file
+        load_dotenv(env_file)
 
         # Get team code from environment
         team_code = os.getenv("USA_SWIMMING_TEAM_CODE")
@@ -41,14 +45,40 @@ class RosterCommand:
 
         console.print(f"\n[cyan]Fetching roster for:[/cyan] {team_name} ({team_code})")
         
-        # Handle --seasons=all
+        # Handle --seasons=all or --seasons=YYYY-YYYY
         seasons = self.seasons
         if seasons and len(seasons) == 1 and seasons[0].lower() == "all":
             # Generate all years from START_YEAR to END_YEAR
             seasons = [str(year) for year in range(int(start_year), int(end_year) + 1)]
             console.print(f"[dim]Seasons: {start_year}-{end_year} (all available)[/dim]\n")
         elif seasons:
-            console.print(f"[dim]Seasons: {', '.join(seasons)}[/dim]\n")
+            # Expand any year ranges (e.g., "2020-2025" -> ["2020", "2021", ..., "2025"])
+            expanded_seasons = []
+            for season in seasons:
+                if "-" in season and season.lower() != "all":
+                    # Parse year range
+                    try:
+                        parts = season.split("-")
+                        if len(parts) == 2:
+                            range_start = int(parts[0])
+                            range_end = int(parts[1])
+                            expanded_seasons.extend([str(year) for year in range(range_start, range_end + 1)])
+                        else:
+                            # Not a valid range, keep as-is
+                            expanded_seasons.append(season)
+                    except ValueError:
+                        # Not a valid range, keep as-is
+                        expanded_seasons.append(season)
+                else:
+                    expanded_seasons.append(season)
+            
+            seasons = expanded_seasons
+            
+            # Show concise range if consecutive years
+            if len(seasons) > 3 and all(seasons[i] == str(int(seasons[i-1]) + 1) for i in range(1, len(seasons))):
+                console.print(f"[dim]Seasons: {seasons[0]}-{seasons[-1]}[/dim]\n")
+            else:
+                console.print(f"[dim]Seasons: {', '.join(seasons)}[/dim]\n")
         else:
             console.print("[dim]Seasons: 2024-2025 (default)[/dim]\n")
 

@@ -311,14 +311,70 @@ class PublishCommand:
                 if top10_by_course[course]:
                     course_name = {"scy": "Short Course Yards", "lcm": "Long Course Meters", "scm": "Short Course Meters"}[course]
                     readme_content += f"### {course_name} ({course.upper()})\n\n"
-                    readme_content += f"- [View all {course.upper()} top 10 lists](records/top10/{course}/)\n\n"
+                    
+                    # Organize top10 files by gender
+                    boys_files = []
+                    girls_files = []
+                    
+                    for file_path in sorted(top10_by_course[course]):
+                        if "boys" in str(file_path):
+                            boys_files.append(file_path)
+                        elif "girls" in str(file_path):
+                            girls_files.append(file_path)
+                    
+                    # Add boys section
+                    if boys_files:
+                        readme_content += "**Boys:**\n"
+                        for file_path in sorted(boys_files):
+                            event_name = file_path.stem.replace("-", " ").title()
+                            readme_content += f"- [{event_name}](records/{file_path})\n"
+                        readme_content += "\n"
+                    
+                    # Add girls section
+                    if girls_files:
+                        readme_content += "**Girls:**\n"
+                        for file_path in sorted(girls_files):
+                            event_name = file_path.stem.replace("-", " ").title()
+                            readme_content += f"- [{event_name}](records/{file_path})\n"
+                        readme_content += "\n"
         
         # Add annual summaries if available
         if annual_files:
             readme_content += "## Season Summaries\n\n"
-            for file_path in sorted(annual_files, reverse=True):
-                filename = file_path.stem
-                readme_content += f"- [{filename}](records/{file_path})\n"
+            
+            # Organize by year (descending)
+            by_year = {}
+            for file_path in annual_files:
+                # Parse filename: YYYY-course-gender.md
+                parts = file_path.stem.split("-")
+                if len(parts) >= 3:
+                    year = parts[0]
+                    course = parts[1]
+                    gender = parts[2] if len(parts) >= 3 else ""
+                    
+                    if year not in by_year:
+                        by_year[year] = {"scy": [], "lcm": [], "scm": []}
+                    
+                    if course in by_year[year]:
+                        by_year[year][course].append((gender, file_path))
+            
+            # Output organized by year
+            for year in sorted(by_year.keys(), reverse=True):
+                readme_content += f"### {year} Season\n\n"
+                
+                for course in ["scy", "lcm", "scm"]:
+                    files = by_year[year].get(course, [])
+                    if files:
+                        course_name = {"scy": "SCY", "lcm": "LCM", "scm": "SCM"}[course]
+                        readme_content += f"**{course_name}:**\n"
+                        
+                        # Sort by gender (boys, then girls)
+                        for gender, file_path in sorted(files):
+                            label = gender.capitalize()
+                            readme_content += f"- [{label}](records/{file_path})\n"
+                        
+                        readme_content += "\n"
+            
             readme_content += "\n"
         
         # Add footer

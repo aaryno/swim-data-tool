@@ -31,8 +31,12 @@ class USASwimmingAPI:
     # Sisense API endpoint
     BASE_URL = "https://usaswimming.sisense.com/api/datasources/USA%20Swimming%20Times%20Elasticube/jaql"  # noqa: E501
 
-    # Public API token (captured from network traffic)
-    AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiNjRhZjE4MGY5Nzg1MmIwMDJkZTU1ZDhkIiwiYXBpU2VjcmV0IjoiMzZhZmIyOWUtYTc0ZC00YWVmLWE2YmQtMDA3MzA5ZTYwZTdkIiwiYWxsb3dlZFRlbmFudHMiOlsiNjRhYzE5ZTEwZTkxNzgwMDFiYzM5YmVhIl0sInRlbmFudElkIjoiNjRhYzE5ZTEwZTkxNzgwMDFiYzM5YmVhIn0.fFw6p06oYT6cv-NbhlxHp7-_UpEueGFQaU4N0iEGGlU"  # noqa: E501
+    # Public API token (captured from network traffic - updated 2025-10-08)
+    # NOTE: This token expires periodically (every few months)
+    # When it expires: Visit https://data.usaswimming.org/datahub, open DevTools → Network,
+    # trigger an API call, copy the Bearer token from request headers, and update here.
+    # See docs/UPDATE_API_TOKEN.md for detailed instructions.
+    AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiNjRhZjE4MGY5Nzg1MmIwMDJkZTU1ZDhkIiwiYXBpU2VjcmV0IjoiZjdiMjAxMDQtMDBmMC05Nzc1LTQzOWQtNGJiYjU2YWFmZTY0IiwiYWxsb3dlZFRlbmFudHMiOlsiNjRhYzE5ZTEwZTkxNzgwMDFiYzM5YmVhIl0sInRlbmFudElkIjoiNjRhYzE5ZTEwZTkxNzgwMDFiYzM5YmVhIn0.IQrXvr12kCVwL-40W_-SDGEjypdmo6PoPXVSrQAAu64"  # noqa: E501
 
     def __init__(self):
         """Initialize the API client."""
@@ -639,7 +643,10 @@ class USASwimmingAPI:
                 df["Gender"] = ""
             
             # Aggregate by PersonKey to get roster
-            roster = df.groupby(["PersonKey", "FullName"]).agg(
+            # Group by PersonKey only since it's unique per swimmer
+            # (FullName can vary slightly across years/meets)
+            roster = df.groupby("PersonKey").agg(
+                FullName=("FullName", "first"),  # Take first occurrence of name
                 Gender=("Gender", "first"),  # Take first (should be consistent for each person)
                 FirstSwimDate=("SwimDate", "min"),
                 LastSwimDate=("SwimDate", "max"),

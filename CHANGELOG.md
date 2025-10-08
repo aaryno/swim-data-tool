@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.9.0] - 2025-10-08
+
+### Fixed
+- **Critical: Roster command not loading .env file** - Fixed roster command to properly call `load_dotenv()` after checking for .env file existence
+  - Bug caused START_YEAR and END_YEAR to not be loaded from .env
+  - Resulted in incorrect year ranges (e.g., "20000-2025" instead of "2000-2025")
+  - `--seasons=all` flag was affected
+- **Critical: Roster deduplication removing swimmers** - Fixed deduplication logic to group by PersonKey only (not PersonKey + FullName)
+  - Previous bug caused swimmers with name variations to be treated as duplicates and removed
+  - Multi-year rosters would paradoxically return fewer swimmers than single-year rosters
+  - Example: 514 swimmers (2025) → 288 swimmers (2024-2025) before fix
+
+### Added
+- Documentation for API token management in `docs/UPDATE_API_TOKEN.md`
+- Token validation script in `scratch/validate_current_token.py`
+- Comprehensive session artifact documenting bug discovery and fixes
+
+### Changed
+- Updated AUTH_TOKEN with fresh token (2025-10-08)
+- Improved roster command robustness
+
+## [0.8.1] - 2025-10-08
+
+### Improved
+- **Enhanced publish README generation** with detailed links to top10 and annual summaries
+  - Top10 lists now organized by course → gender → individual events
+  - Annual summaries organized by year → course → gender
+  - Direct links to each top10 event file (not just directories)
+  - Better formatting and navigation in published records
+  - Event names automatically formatted (e.g., "50-free" → "50 Free")
+
+### Changed
+- Publish command now generates comprehensive README with full navigation structure
+- Users can now easily browse all top10 events and season summaries from the README
+
 ## [0.8.0] - 2025-10-08
 
 ### Added

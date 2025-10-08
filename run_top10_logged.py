@@ -44,3 +44,4 @@ except Exception as e:
     sys.exit(1)
 finally:
     log.close()
+
