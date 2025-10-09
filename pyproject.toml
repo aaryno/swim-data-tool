@@ -91,5 +91,9 @@ ignore_missing_imports = true
 module = "pandas"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "playwright.*"
+ignore_missing_imports = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/swim_data_tool"]
