@@ -13,6 +13,8 @@ The recommended approach is to manually update the token periodically:
 See docs/UPDATE_API_TOKEN.md for detailed instructions.
 """
 
+from typing import Any
+
 import requests
 
 
@@ -49,7 +51,7 @@ def validate_token(token: str) -> bool:
         return False
 
 
-def get_token_info(token: str) -> dict:
+def get_token_info(token: str) -> dict[str, Any]:
     """Get information about a JWT token.
 
     Args:

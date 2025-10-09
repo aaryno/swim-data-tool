@@ -28,7 +28,7 @@ class USASwimmingSource(SwimDataSource):
         """Field name for unique swimmer ID."""
         return "PersonKey"
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize USA Swimming source."""
         self.api = USASwimmingAPI()
 

@@ -126,8 +126,12 @@ class RosterCommand:
             console.print(f"[dim]Seasons: {self.start_season} to {self.end_season} ({len(seasons)} seasons)[/dim]\n")
         elif seasons and len(seasons) == 1 and seasons[0].lower() == "all":
             # Generate all years from START_YEAR to END_YEAR
-            seasons = [str(year) for year in range(int(start_year), int(end_year) + 1)]
-            console.print(f"[dim]Seasons: {start_year}-{end_year} (all available)[/dim]\n")
+            if start_year and end_year:
+                seasons = [str(year) for year in range(int(start_year), int(end_year) + 1)]
+                console.print(f"[dim]Seasons: {start_year}-{end_year} (all available)[/dim]\n")
+            else:
+                console.print("[red]Error: 'all' seasons only supported for USA Swimming[/red]")
+                return
         elif seasons:
             # Expand any year ranges (e.g., "2020-2025" -> ["2020", "2021", ..., "2025"])
             expanded_seasons = []

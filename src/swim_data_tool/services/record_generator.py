@@ -600,7 +600,7 @@ class RecordGenerator:
             f.write("|-----------|-------|------|---------|------|------|\n")
 
             # Group records by age group for clean display
-            age_group_records = {}
+            age_group_records: dict[str, list[tuple[str, RecordEntry]]] = {}
             for event_code, age_group, rec in new_records_sorted:
                 if age_group not in age_group_records:
                     age_group_records[age_group] = []

@@ -246,8 +246,8 @@ class PublishCommand:
             return
 
         # Organize files by course and type
-        records_by_course = {"scy": [], "lcm": [], "scm": []}
-        top10_by_course = {"scy": [], "lcm": [], "scm": []}
+        records_by_course: dict[str, list[Path]] = {"scy": [], "lcm": [], "scm": []}
+        top10_by_course: dict[str, list[Path]] = {"scy": [], "lcm": [], "scm": []}
         annual_files = []
 
         for file_path in files_to_copy:
@@ -357,14 +357,14 @@ class PublishCommand:
             readme_content += "## Season Summaries\n\n"
 
             # Organize by year (descending)
-            by_year = {}
+            by_year: dict[str, dict[str, list[tuple[str, Path]]]] = {}
             for file_path in annual_files:
                 # Parse filename: YYYY-course-gender.md
-                parts = file_path.stem.split("-")
-                if len(parts) >= 3:
-                    year = parts[0]
-                    course = parts[1]
-                    gender = parts[2] if len(parts) >= 3 else ""
+                filename_parts = file_path.stem.split("-")
+                if len(filename_parts) >= 3:
+                    year = filename_parts[0]
+                    course = filename_parts[1]
+                    gender = filename_parts[2] if len(filename_parts) >= 3 else ""
 
                     if year not in by_year:
                         by_year[year] = {"scy": [], "lcm": [], "scm": []}

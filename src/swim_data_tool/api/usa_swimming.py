@@ -38,7 +38,7 @@ class USASwimmingAPI:
     # See docs/UPDATE_API_TOKEN.md for detailed instructions.
     AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiNjRhZjE4MGY5Nzg1MmIwMDJkZTU1ZDhkIiwiYXBpU2VjcmV0IjoiZjdiMjAxMDQtMDBmMC05Nzc1LTQzOWQtNGJiYjU2YWFmZTY0IiwiYWxsb3dlZFRlbmFudHMiOlsiNjRhYzE5ZTEwZTkxNzgwMDFiYzM5YmVhIl0sInRlbmFudElkIjoiNjRhYzE5ZTEwZTkxNzgwMDFiYzM5YmVhIn0.IQrXvr12kCVwL-40W_-SDGEjypdmo6PoPXVSrQAAu64"  # noqa: E501
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the API client."""
         self.session = requests.Session()
         self.session.headers.update(
@@ -251,7 +251,7 @@ class USASwimmingAPI:
         response = self.session.post(self.BASE_URL, json=payload)
 
         if response.status_code == 200:
-            return response.json()
+            return response.json()  # type: ignore[no-any-return]
         else:
             raise Exception(f"Query failed with status {response.status_code}")
 
@@ -419,41 +419,38 @@ class USASwimmingAPI:
             # Split into first and last name
             first_name = name_parts[0]
             last_name = " ".join(name_parts[1:])
-            metadata.append(
-                {
-                    "jaql": {
-                        "title": "FirstAndPreferredName",
-                        "dim": "[Persons.FirstAndPreferredName]",
-                        "datatype": "text",
-                        "filter": {"contains": first_name},
-                    },
-                    "panel": "scope",
-                }
-            )
-            metadata.append(
-                {
-                    "jaql": {
-                        "title": "LastName",
-                        "dim": "[Persons.LastName]",
-                        "datatype": "text",
-                        "filter": {"contains": last_name},
-                    },
-                    "panel": "scope",
-                }
-            )
+            first_filter: Any = {
+                "jaql": {
+                    "title": "FirstAndPreferredName",
+                    "dim": "[Persons.FirstAndPreferredName]",
+                    "datatype": "text",
+                    "filter": {"contains": first_name},
+                },
+                "panel": "scope",
+            }
+            metadata.append(first_filter)
+            last_filter: Any = {
+                "jaql": {
+                    "title": "LastName",
+                    "dim": "[Persons.LastName]",
+                    "datatype": "text",
+                    "filter": {"contains": last_name},
+                },
+                "panel": "scope",
+            }
+            metadata.append(last_filter)
         else:
             # Just search by full name or last name
-            metadata.append(
-                {
-                    "jaql": {
-                        "title": "LastName",
-                        "dim": "[Persons.LastName]",
-                        "datatype": "text",
-                        "filter": {"contains": swimmer_name},
-                    },
-                    "panel": "scope",
-                }
-            )
+            name_filter: Any = {
+                "jaql": {
+                    "title": "LastName",
+                    "dim": "[Persons.LastName]",
+                    "datatype": "text",
+                    "filter": {"contains": swimmer_name},
+                },
+                "panel": "scope",
+            }
+            metadata.append(name_filter)
 
         payload = {
             "metadata": metadata,
@@ -748,7 +745,7 @@ class USASwimmingAPI:
 
         # Add LSC filter if provided
         if lsc_code:
-            metadata[1]["jaql"]["filter"] = {"equals": lsc_code.upper()}
+            metadata[1]["jaql"]["filter"] = {"equals": lsc_code.upper()}  # type: ignore[index]
 
         payload = {
             "metadata": metadata,

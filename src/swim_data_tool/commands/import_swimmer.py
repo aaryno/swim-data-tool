@@ -17,7 +17,7 @@ class ImportSwimmerCommand:
     def __init__(self, person_key: int, cwd: Path):
         self.person_key = person_key
         self.cwd = cwd
-        self.api = USASwimmingAPI()
+        self.api = USASwimmingAPI()  # type: ignore[no-untyped-call]
 
     def run(self) -> None:
         """Execute the import swimmer command."""

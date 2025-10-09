@@ -317,7 +317,7 @@ class GenerateTop10Command:
             table.add_column("Files", style="green")
 
             # Group by course
-            course_counts = {}
+            course_counts: dict[str, int] = {}
             for course, _ in generated_files:
                 course_counts[course] = course_counts.get(course, 0) + 1
 
