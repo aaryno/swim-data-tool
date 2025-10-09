@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import (
@@ -17,32 +18,55 @@ from rich.progress import (
     TimeElapsedColumn,
 )
 
-from swim_data_tool.api import USASwimmingAPI
+from swim_data_tool.sources.factory import get_source
 
 console = Console()
 
 
 class ImportSwimmersCommand:
-    """Import career data for multiple swimmers from a CSV file."""
+    """Import career data for multiple swimmers from any data source."""
 
-    def __init__(self, cwd: Path, csv_file: str | None, dry_run: bool, force: bool = False):
+    def __init__(self, cwd: Path, csv_file: str | None, dry_run: bool, force: bool = False, source: str | None = None):
         self.cwd = cwd
         self.csv_file = csv_file
         self.dry_run = dry_run
         self.force = force
-        self.api = USASwimmingAPI()
+        self.source_name = source
 
     def run(self) -> None:
         """Execute the import swimmers command."""
-        # Default to roster.csv if no file specified
+        # Load .env
+        env_file = self.cwd / ".env"
+        if env_file.exists():
+            load_dotenv(env_file)
+        
+        # Get data source
+        try:
+            source = get_source(self.source_name)
+        except ValueError as e:
+            console.print(f"[red]Error: {e}[/red]")
+            return
+
+        console.print(f"\n[bold cyan]🏊 Import Swimmers[/bold cyan]")
+        console.print(f"[dim]Data source: {source.source_name}[/dim]\n")
+        
+        # Auto-detect roster file if not specified
         if not self.csv_file:
-            default_file = self.cwd / "data" / "lookups" / "roster.csv"
-            if default_file.exists():
-                self.csv_file = str(default_file)
-                console.print(f"[dim]Using default roster: {self.csv_file}[/dim]\n")
-            else:
+            source_suffix = source.source_name.lower().replace(" ", "-")
+            default_files = [
+                self.cwd / "data" / "lookups" / f"roster-{source_suffix}.csv",
+                self.cwd / "data" / "lookups" / "roster.csv",
+            ]
+            
+            for default_file in default_files:
+                if default_file.exists():
+                    self.csv_file = str(default_file)
+                    console.print(f"[dim]Using roster: {self.csv_file}[/dim]\n")
+                    break
+            
+            if not self.csv_file:
                 console.print("[yellow]⚠️  No roster file found[/yellow]")
-                console.print("Please run: [cyan]swim-data-tool roster[/cyan] first\n")
+                console.print(f"Please run: [cyan]swim-data-tool roster --source={source.source_name.lower().replace(' ', '_')}[/cyan] first\n")
                 console.print("Or specify a CSV file with: [cyan]swim-data-tool import swimmers --file=FILE[/cyan]")
                 return
 
@@ -53,48 +77,63 @@ class ImportSwimmersCommand:
             console.print(f"[red]✗ Error reading CSV file: {e}[/red]\n")
             return
 
-        # Validate CSV format
-        if "PersonKey" not in swimmers_df.columns:
-            console.print(
-                "[red]✗ CSV file must have 'PersonKey' column[/red]\n"
-            )
+        # Get swimmer ID field from source
+        id_field = source.swimmer_id_field
+        
+        # Validate CSV has ID field
+        if id_field not in swimmers_df.columns:
+            console.print(f"[red]✗ CSV file must have '{id_field}' column for {source.source_name}[/red]\n")
+            console.print(f"[dim]Available columns: {', '.join(swimmers_df.columns)}[/dim]")
             return
 
-        if "FullName" not in swimmers_df.columns:
-            console.print(
-                "[yellow]⚠️  CSV file missing 'FullName' column (will use PersonKey)[/yellow]\n"
-            )
-            swimmers_df["FullName"] = swimmers_df["PersonKey"].astype(str)
+        # Get name field (handle different column names)
+        name_field = None
+        for possible_name in ["swimmer_name", "FullName", "Name"]:
+            if possible_name in swimmers_df.columns:
+                name_field = possible_name
+                break
         
-        # Create gender map if Gender column exists in roster
+        if not name_field:
+            console.print("[yellow]⚠️  No name column found (will use ID)[/yellow]\n")
+            swimmers_df["swimmer_name"] = swimmers_df[id_field].astype(str)
+            name_field = "swimmer_name"
+        
+        # Create gender map if gender column exists
         gender_map = {}
-        if "Gender" in swimmers_df.columns:
+        gender_col = "gender" if "gender" in swimmers_df.columns else "Gender" if "Gender" in swimmers_df.columns else None
+        if gender_col:
             for _, row in swimmers_df.iterrows():
-                if row["PersonKey"] != 0 and row.get("Gender"):
-                    gender_map[int(row["PersonKey"])] = row["Gender"]
+                swimmer_id = str(row[id_field])
+                if row.get(gender_col):
+                    gender_map[swimmer_id] = row[gender_col]
         
-        # Filter out relay entries (PersonKey=0) and only-relay swimmers
-        # TODO: Future enhancement - recognize individuals in relay results
-        #       When generating team records, top 10 lists, or annual analysis,
-        #       we should parse relay names to credit individual swimmers.
-        #       This will require name matching against known swimmers.
+        # Filter out relay entries (PersonKey=0 for USA Swimming)
         total_entries = len(swimmers_df)
-        swimmers_df = swimmers_df[swimmers_df["PersonKey"] != 0].copy()
+        if id_field == "PersonKey":
+            swimmers_df = swimmers_df[swimmers_df["PersonKey"] != 0].copy()
         relay_entries = total_entries - len(swimmers_df)
 
         # Get configuration
-        start_year = int(os.getenv("START_YEAR", "1998"))
-        end_year = int(os.getenv("END_YEAR", str(datetime.now().year)))
         raw_dir = Path(os.getenv("RAW_DIR", "data/raw"))
         swimmers_dir = raw_dir / "swimmers"
+        
+        # Year range only needed for USA Swimming
+        if source.source_name == "USA Swimming":
+            start_year_str = os.getenv("START_YEAR", "1998")
+            end_year_str = os.getenv("END_YEAR", str(datetime.now().year))
+            start_year = int(start_year_str) if start_year_str else 1998
+            end_year = int(end_year_str) if end_year_str else datetime.now().year
+        else:
+            start_year = None
+            end_year = None
 
-        console.print("\n[bold cyan]Import Swimmers[/bold cyan]\n")
         console.print(f"  CSV File: {self.csv_file}")
         console.print(f"  Total entries in roster: {total_entries}")
         console.print(f"  Individual swimmers: {len(swimmers_df)}")
         if relay_entries > 0:
             console.print(f"  Relay-only entries: {relay_entries} (skipped)")
-        console.print(f"  Years: {start_year}-{end_year}")
+        if source.source_name == "USA Swimming":
+            console.print(f"  Years: {start_year}-{end_year}")
         console.print(f"  Output: {swimmers_dir}\n")
 
         # Check existing files (unless force mode)
@@ -102,14 +141,20 @@ class ImportSwimmersCommand:
             existing = set()
             console.print("  [yellow]Force mode: Will re-download all swimmers[/yellow]\n")
         else:
-            existing = self._get_existing_swimmer_files(swimmers_dir)
+            existing = self._get_existing_swimmer_files(swimmers_dir, id_field)
 
         # Determine what to download
         to_download = []
         for _, row in swimmers_df.iterrows():
-            person_key = int(row["PersonKey"])
-            if person_key not in existing:
-                to_download.append((person_key, row["FullName"]))
+            swimmer_id = str(row[id_field])
+            swimmer_name = row[name_field]
+            
+            if swimmer_id not in existing:
+                # For MaxPreps, we need the full athlete URL
+                if source.source_name == "MaxPreps" and "athlete_url" in row:
+                    to_download.append((row["athlete_url"], swimmer_name, swimmer_id))
+                else:
+                    to_download.append((swimmer_id, swimmer_name, swimmer_id))
 
         # Calculate breakdown
         already_cached = len(existing)
@@ -129,8 +174,8 @@ class ImportSwimmersCommand:
         # Dry run mode
         if self.dry_run:
             console.print("[yellow]DRY RUN MODE - showing first 20 swimmers:[/yellow]\n")
-            for i, (pk, name) in enumerate(to_download[:20], 1):
-                console.print(f"  {i}. {name} (PersonKey: {pk})")
+            for i, (url_or_id, name, swimmer_id) in enumerate(to_download[:20], 1):
+                console.print(f"  {i}. {name} (ID: {swimmer_id})")
             if len(to_download) > 20:
                 console.print(f"  ... and {len(to_download) - 20} more")
             console.print("\n💡 Remove --dry-run to actually download\n")
@@ -162,13 +207,13 @@ class ImportSwimmersCommand:
                 "[cyan]Downloading swimmers...", total=len(to_download)
             )
 
-            for person_key, name in to_download:
-                progress.update(task, description=f"[cyan]Downloading: {name[:30]}")
+            for url_or_id, name, swimmer_id in to_download:
+                progress.update(task, description=f"[cyan]Fetching: {name[:30]}")
 
                 start_time = time.time()
                 try:
-                    df = self.api.download_swimmer_career(
-                        person_key=person_key,
+                    df = source.get_swimmer_history(
+                        swimmer_id=url_or_id,
                         start_year=start_year,
                         end_year=end_year,
                     )
@@ -177,7 +222,7 @@ class ImportSwimmersCommand:
                     
                     # Check if this swimmer took too long
                     if elapsed > timeout_threshold:
-                        console.print(f"\n[yellow]⚠️  {name} took {elapsed:.1f}s (slow swimmer, might have huge career)[/yellow]")
+                        console.print(f"\n[yellow]⚠️  {name} took {elapsed:.1f}s[/yellow]")
                         timeouts += 1
 
                     # Track recent download times
@@ -188,28 +233,29 @@ class ImportSwimmersCommand:
                     # Calculate and show average rate
                     if len(recent_times) >= 3:
                         avg_time = sum(recent_times) / len(recent_times)
-                        progress.update(task, description=f"[cyan]Downloading: {name[:30]} (avg: {avg_time:.1f}s/swimmer)")
+                        progress.update(task, description=f"[cyan]Fetching: {name[:30]} (avg: {avg_time:.1f}s/swimmer)")
 
                     if not df.empty:
-                        # Add Gender column if we have gender data
-                        if gender_map and person_key in gender_map:
-                            df["Gender"] = gender_map[person_key]
+                        # Add Gender column if we have gender data and it's not already there
+                        if gender_map and swimmer_id in gender_map:
+                            if "gender" not in df.columns and "Gender" not in df.columns:
+                                df["Gender"] = gender_map[swimmer_id]
                         
                         safe_name = self._sanitize_filename(name)
-                        filename = swimmers_dir / f"{safe_name}-{person_key}.csv"
+                        filename = swimmers_dir / f"{safe_name}-{swimmer_id}.csv"
                         df.to_csv(filename, index=False)
                         downloaded += 1
                     else:
                         empty += 1
 
-                    # Small delay to be respectful to API
-                    time.sleep(0.1)
+                    # Small delay to be respectful
+                    time.sleep(0.5 if source.source_name == "MaxPreps" else 0.1)
 
                 except KeyboardInterrupt:
-                    console.print("\n[yellow]⚠️  Download interrupted by user[/yellow]")
+                    console.print("\n[yellow]⚠️  Interrupted by user[/yellow]")
                     raise
                 except Exception as e:
-                    console.print(f"\n[red]✗ Error downloading {name}: {e}[/red]")
+                    console.print(f"\n[red]✗ Error fetching {name}: {e}[/red]")
                     errors += 1
 
                 progress.advance(task)
@@ -250,24 +296,29 @@ class ImportSwimmersCommand:
             expand=False
         ))
 
-    def _get_existing_swimmer_files(self, swimmers_dir: Path) -> set[int]:
-        """Get set of PersonKeys that already have cached files."""
+    def _get_existing_swimmer_files(self, swimmers_dir: Path, id_field: str) -> set[str]:
+        """Get set of swimmer IDs that already have cached files.
+        
+        Args:
+            swimmers_dir: Directory containing swimmer CSV files
+            id_field: Name of ID field (PersonKey, careerid, etc.)
+        
+        Returns:
+            Set of swimmer IDs (as strings) that have cached files
+        """
         if not swimmers_dir.exists():
             return set()
 
-        existing_person_keys = set()
+        existing_ids = set()
         for csv_file in swimmers_dir.glob("*.csv"):
-            # Extract PersonKey from filename (last part before .csv)
+            # Extract ID from filename (last part before .csv)
             filename = csv_file.stem
             parts = filename.split("-")
             if parts:
-                try:
-                    person_key = int(parts[-1])
-                    existing_person_keys.add(person_key)
-                except ValueError:
-                    continue
+                swimmer_id = parts[-1]
+                existing_ids.add(swimmer_id)
 
-        return existing_person_keys
+        return existing_ids
 
     def _sanitize_filename(self, name: str) -> str:
         """Convert name to safe filename format."""

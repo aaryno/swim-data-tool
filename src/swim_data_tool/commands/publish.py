@@ -241,6 +241,16 @@ class PublishCommand:
             readme_path: Path to README.md file
             files_to_copy: List of markdown files being published
         """
+        # Check for custom README template first
+        custom_template = self.cwd / "README-template.md"
+        if custom_template.exists():
+            console.print("  Using custom README template")
+            update_date = datetime.now().strftime("%B %d, %Y")
+            template_content = custom_template.read_text()
+            readme_content = template_content.replace("{DATE}", update_date)
+            readme_path.write_text(readme_content)
+            return
+        
         # Organize files by course and type
         records_by_course = {"scy": [], "lcm": [], "scm": []}
         top10_by_course = {"scy": [], "lcm": [], "scm": []}

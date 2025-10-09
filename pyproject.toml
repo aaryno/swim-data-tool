@@ -1,6 +1,6 @@
 [project]
 name = "swim-data-tool"
-version = "0.12.0"
+version = "0.12.1"
 description = "CLI tool for swim team record management"
 authors = [{name = "Aaryn Rosenberg"}]
 readme = "README.md"
@@ -34,6 +34,7 @@ dev = [
     "types-requests",
     "types-beautifulsoup4",
     "types-pyyaml",
+    "pandas-stubs",
 ]
 maxpreps = [
     "playwright>=1.40.0",

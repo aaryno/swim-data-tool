@@ -71,30 +71,54 @@ def config(ctx: click.Context) -> None:
 
 @main.command()
 @click.option(
+    "--source",
+    type=click.Choice(["usa_swimming", "maxpreps"], case_sensitive=False),
+    help="Data source (default: usa_swimming)",
+)
+@click.option(
     "--seasons",
     multiple=True,
     help="Season years to search (e.g., --seasons=2024 --seasons=2025, or --seasons=all)",
 )
 @click.option(
+    "--start-season",
+    type=str,
+    help="Start of season range (e.g., 12-13 for MaxPreps, 2012 for USA Swimming)",
+)
+@click.option(
+    "--end-season",
+    type=str,
+    help="End of season range (e.g., 25-26 for MaxPreps, 2025 for USA Swimming)",
+)
+@click.option(
     "--output",
     type=click.Path(),
-    help="Output CSV file path (default: data/lookups/roster.csv)",
+    help="Output CSV file path (default: data/lookups/roster-{source}.csv)",
 )
 @click.pass_context
-def roster(ctx: click.Context, seasons: tuple[str, ...], output: str | None) -> None:
-    """Fetch team roster from USA Swimming.
+def roster(
+    ctx: click.Context, 
+    source: str | None, 
+    seasons: tuple[str, ...], 
+    start_season: str | None,
+    end_season: str | None,
+    output: str | None
+) -> None:
+    """Fetch team roster from any data source.
 
     \b
     Examples:
         swim-data-tool roster
-        swim-data-tool roster --seasons=all
-        swim-data-tool roster --seasons=2023 --seasons=2024 --seasons=2025
+        swim-data-tool roster --source=usa_swimming
+        swim-data-tool roster --source=maxpreps
+        swim-data-tool roster --source=maxpreps --seasons=24-25 --seasons=23-24
+        swim-data-tool roster --source=maxpreps --start-season=12-13 --end-season=25-26
         swim-data-tool roster --output=my_roster.csv
     """
     from swim_data_tool.commands.roster import RosterCommand
 
     seasons_list = list(seasons) if seasons else None
-    cmd = RosterCommand(ctx.obj["cwd"], seasons_list, output)
+    cmd = RosterCommand(ctx.obj["cwd"], seasons_list, output, source, start_season, end_season)
     cmd.run()
 
 
@@ -121,22 +145,29 @@ def import_swimmer(ctx: click.Context, person_key: int) -> None:
 
 
 @import_cmd.command(name="swimmers")
-@click.option("--file", type=click.Path(exists=True), help="CSV file with PersonKeys (default: data/lookups/roster.csv)")
+@click.option(
+    "--source",
+    type=click.Choice(["usa_swimming", "maxpreps"], case_sensitive=False),
+    help="Data source (default: usa_swimming)",
+)
+@click.option("--file", type=click.Path(exists=True), help="CSV file with swimmer IDs (default: data/lookups/roster-{source}.csv)")
 @click.option("--dry-run", is_flag=True, help="Show what would be downloaded")
 @click.option("--force", is_flag=True, help="Re-download all swimmers (overwrite existing files)")
 @click.pass_context
-def import_swimmers(ctx: click.Context, file: str | None, dry_run: bool, force: bool) -> None:
-    """Import career data for multiple swimmers.
+def import_swimmers(ctx: click.Context, source: str | None, file: str | None, dry_run: bool, force: bool) -> None:
+    """Import career data for multiple swimmers from any data source.
 
     \b
     Examples:
         swim-data-tool import swimmers
+        swim-data-tool import swimmers --source=usa_swimming
+        swim-data-tool import swimmers --source=maxpreps
         swim-data-tool import swimmers --file=swimmers.csv
         swim-data-tool import swimmers --dry-run
     """
     from swim_data_tool.commands.import_swimmers import ImportSwimmersCommand
 
-    cmd = ImportSwimmersCommand(ctx.obj["cwd"], file, dry_run, force)
+    cmd = ImportSwimmersCommand(ctx.obj["cwd"], file, dry_run, force, source)
     cmd.run()
 
 

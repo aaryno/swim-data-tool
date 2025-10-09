@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.12.1] - 2025-10-09
+
+### Fixed
+- CI/CD pipeline now passing all checks (lint, type-check, tests)
+- Auto-fixed 225+ ruff linting errors (trailing whitespace, f-strings, line length, import sorting)
+- Added `pandas-stubs` to dev dependencies for mypy type checking
+
+### Changed
+- Cleaned up repository by removing test scripts and outdated documentation files
+- Improved code quality and consistency across codebase
+
 ## [0.12.0] - 2025-10-09
 
 ### Fixed

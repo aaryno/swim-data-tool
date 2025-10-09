@@ -8,6 +8,8 @@
 
 **Status:** ✅ Production-ready with critical bug fixes - Two major roster bugs fixed, improving multi-year roster accuracy and .env configuration loading!
 
+**Last Cleanup:** 2025-10-09 - Organized project structure, moved test scripts to scratch/, moved development docs to artifacts/
+
 ---
 
 ## Project Architecture
@@ -90,15 +92,19 @@ swim-data-tool/
 │
 ├── artifacts/                  # AI-generated documentation (development only)
 │   ├── README.md               # Explains artifacts directory
-│   ├── session-summary-v0.1-v0.3.md  # Testing guide
-│   ├── v0.4.0-generate-records-plan.md
-│   └── v0.4.0-release-summary.md
+│   ├── session-*.md            # Session summaries
+│   ├── v*.md                   # Release summaries and plans
+│   ├── IMPLEMENTATION_COMPLETE.md  # Multi-source implementation summary
+│   ├── TESTING.md              # Testing guide for multi-source
+│   └── *_COMPLETE.md, *_FEATURE.md  # Feature completion notes
 │
 ├── scratch/                    # ⚠️ REQUIRED: ALL test/debug scripts go here (not root!)
 │   ├── README.md               # Explains scratch directory purpose
 │   ├── test_*.py               # Test scripts for API, features, debugging
 │   ├── debug_*.py              # Debugging utilities
-│   └── check_*.py              # Verification scripts
+│   ├── check_*.py              # Verification scripts
+│   ├── run_*.py, *.sh          # One-off execution scripts
+│   └── create_*.py             # Setup/initialization scripts
 │                               # Directory is in .gitignore - never committed
 │                               # Move mature code to proper modules when ready
 │
@@ -470,12 +476,16 @@ swim-data-tool generate records
 - `data/` - Raw, processed, and generated data
 - `claude.md` - Club-specific context and workflows
 - `README.md` - Club information
-- `.swim-data-tool-version` - Tool version tracking
+- `.swim-data-tool-version` - Tool version tracking (created by `init` command)
 
 **Club repos do NOT contain:**
 - Python scripts (use shared tool)
 - Virtual environment (use shared .venv)
 - Tool source code
+
+**Note on Version Files:**
+- `VERSION` in tool repo - Source of truth for tool version (updated on releases)
+- `.swim-data-tool-version` in team repos - Records which tool version initialized the team (managed by init command)
 
 ### Usage Pattern
 
@@ -765,11 +775,16 @@ When working on swim-data-tool, AI assistants must follow these rules:
 ### Artifact Types
 
 Store in `artifacts/`:
-- Task lists and TODO tracking
-- Design documents and planning
-- Implementation notes
-- Release summaries
-- Session summaries for testing
+- Session summaries (session-*.md)
+- Release summaries (v*.md)
+- Implementation completion notes (*_COMPLETE.md)
+- Feature documentation (*_FEATURE.md)
+- Testing guides (TESTING.md)
+
+Store in `research/`:
+- Technical analysis (MAXPREPS_API_ANALYSIS.md)
+- Workflow guides (CLI_WORKFLOW.md, MAXPREPS_WORKFLOW.md)
+- Architecture planning (GENERALIZATION_ANALYSIS.md)
 
 ### Test/Debug Scripts
 
@@ -872,17 +887,20 @@ swim-data-tool config
 - Source code: `src/swim_data_tool/`
 - Tests: `tests/` (pytest unit tests)
 - Templates: `templates/` (init templates)
-- Artifacts: `artifacts/` (AI-generated docs)
+- Research: `research/` (analysis, workflows, planning docs)
+- Artifacts: `artifacts/` (AI-generated summaries, session notes)
 - **Scratch: `scratch/`** (temp test/debug scripts - use this!)
+- Docs: `docs/` (user documentation)
 - Virtual environment: `.venv/`
 
 ### Important Files
 
 - `pyproject.toml` - Project configuration
-- `VERSION` - Current version number
+- `VERSION` - Current version number (source of truth)
 - `CHANGELOG.md` - Version history
 - `README.md` - User documentation
 - `claude.md` - This file (AI context)
+- `.swim-data-tool-version` - Only in team repos (not tool repo)
 
 ---
 
@@ -990,6 +1008,6 @@ console.print(Panel(
 
 ---
 
-**Last Updated:** 2025-10-08  
+**Last Updated:** 2025-10-09  
 **Version:** 0.9.0  
-**Status:** Production-ready with critical bug fixes
+**Status:** Production-ready with critical bug fixes (project structure cleaned up)
