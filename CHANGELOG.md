@@ -1,5 +1,75 @@
 # Changelog
 
+## [0.12.0] - 2025-10-09
+
+### Fixed
+- **Critical: Relay events contaminating individual top 10 lists** - Fixed relay events (200 FR RELAY, 400 FR RELAY, 200 MEDLEY RELAY) appearing in individual event top 10 lists
+  - Added explicit relay filtering in `generate_top10.py` and `generate_all_season_top10.py`
+  - Filters out events containing "RELAY" from individual top 10 lists
+  - Relay events remain in their own dedicated relay records and in annual summaries
+  - Affected all teams using top 10 generation
+  - Impact: 1,870+ relay swims correctly filtered in typical high school dataset
+
+### Added
+- **Custom README template support** - Publish command now supports custom README templates
+  - Checks for `README-template.md` in team directory
+  - Uses custom template with `{DATE}` placeholder if found
+  - Falls back to auto-generated README if no template exists
+  - Enables teams (especially high schools) to create comprehensive custom documentation
+  - Template survives future publish operations
+
+## [0.11.0] - 2025-10-09
+
+### Added
+- **High School Swimming Support** - Complete pipeline for MaxPreps and AIA data
+  - Dynamic grade assignment based on season sections
+  - Relay data capture from individual athlete pages
+  - AIA State Championship PDF parsing and integration
+  - Comprehensive name consolidation with alias management
+
+### Changed
+- Grade-based records generation for high school format
+- Enhanced annual summaries with records broken section
+- Improved time and date formatting across all outputs
+
+## [0.10.0] - 2025-10-08
+
+### Added
+- **Season Range Support** - New `--start-season` and `--end-season` flags for roster command
+  - Simplifies multi-season collection (e.g., `--start-season=12-13 --end-season=24-25` expands to 13 seasons)
+  - Works with MaxPreps YY-YY format and USA Swimming YYYY format
+  - Validation ensures both parameters provided together
+  - More convenient than multiple `--seasons` flags
+- **Multi-Source Architecture** - Abstract data source layer for USA Swimming and MaxPreps
+  - `SwimDataSource` abstract base class in `sources/base.py`
+  - Canonical data models in `models/canonical.py` (Swimmer, Swim, Team)
+  - Source factory pattern in `sources/factory.py`
+  - `USASwimmingSource` plugin (refactored from direct API calls)
+  - `MaxPrepsSource` plugin (web scraping with Playwright)
+- **MaxPreps Integration** - Full support for high school swimming data
+  - Roster scraping from MaxPreps team pages
+  - Athlete stats scraping from individual athlete pages
+  - Grade level tracking (Freshman, Sophomore, Junior, Senior)
+  - Season deduplication (keeps most recent grade)
+  - Both boys and girls teams supported
+- **Grade-Based Data** - Support for grade levels in data models
+  - Grade information extracted from MaxPreps rosters
+  - Numeric grades (9, 10, 11, 12) and abbreviations (Fr., So., Jr., Sr.)
+  - Foundation for grade-based record generation
+
+### Changed
+- Roster command now supports `--source` flag (defaults to `usa_swimming`)
+- Import swimmers command updated to support multiple data sources
+- CLI examples updated to show MaxPreps usage
+- Testing documentation expanded with season range tests
+
+### Documentation
+- `SEASON_RANGE_FEATURE.md` - Season range implementation guide
+- `TESTING.md` - Updated with season range test cases
+- `tanque-verde-test/SEASON_RANGE_TESTS.md` - Quick testing guide
+- `research/MAXPREPS_API_ANALYSIS.md` - MaxPreps data structure research
+- `research/CLI_WORKFLOW.md` - Multi-source command-line patterns
+
 ## [0.9.0] - 2025-10-08
 
 ### Fixed
