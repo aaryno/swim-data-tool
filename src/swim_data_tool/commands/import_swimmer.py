@@ -25,9 +25,7 @@ class ImportSwimmerCommand:
         start_year = int(os.getenv("START_YEAR", "1998"))
         end_year = int(os.getenv("END_YEAR", str(datetime.now().year)))
 
-        console.print(
-            f"\n[cyan]Downloading career data for PersonKey {self.person_key}...[/cyan]"
-        )
+        console.print(f"\n[cyan]Downloading career data for PersonKey {self.person_key}...[/cyan]")
         console.print(f"  Years: {start_year}-{end_year}\n")
 
         try:
@@ -39,12 +37,8 @@ class ImportSwimmerCommand:
             )
 
             if df.empty:
-                console.print(
-                    "[yellow]No swims found for this PersonKey[/yellow]"
-                )
-                console.print(
-                    "  Swimmer may have no USA Swimming times in this date range\n"
-                )
+                console.print("[yellow]No swims found for this PersonKey[/yellow]")
+                console.print("  Swimmer may have no USA Swimming times in this date range\n")
                 return
 
             # Get swimmer name from first row
@@ -73,4 +67,3 @@ class ImportSwimmerCommand:
         safe_name = name.lower().replace(" ", "-")
         safe_name = "".join(c for c in safe_name if c.isalnum() or c == "-")
         return safe_name
-

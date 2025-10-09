@@ -99,9 +99,7 @@ class RecordGenerator:
 
         return pd.concat(all_data, ignore_index=True)
 
-    def filter_team_swims(
-        self, df: pd.DataFrame, team_names: list[str]
-    ) -> pd.DataFrame:
+    def filter_team_swims(self, df: pd.DataFrame, team_names: list[str]) -> pd.DataFrame:
         """Filter for team-affiliated swims.
 
         Args:
@@ -182,9 +180,7 @@ class RecordGenerator:
 
         return df
 
-    def get_best_times_by_event(
-        self, df: pd.DataFrame, course: str
-    ) -> dict[str, dict[str, RecordEntry]]:
+    def get_best_times_by_event(self, df: pd.DataFrame, course: str) -> dict[str, dict[str, RecordEntry]]:
         """Get best times for each event/age group combination.
 
         Args:
@@ -241,9 +237,7 @@ class RecordGenerator:
                 df_age = df_age.sort_values("time_seconds")
 
                 # Get best time per swimmer, then overall best
-                df_best_per_swimmer = df_age.drop_duplicates(
-                    subset=["Name"], keep="first"
-                )
+                df_best_per_swimmer = df_age.drop_duplicates(subset=["Name"], keep="first")
 
                 if df_best_per_swimmer.empty:
                     continue
@@ -293,9 +287,7 @@ class RecordGenerator:
             # Header
             f.write(f"# {team_name}\n")
             f.write(f"## Team Records - {course_full} ({course.upper()})\n\n")
-            f.write(
-                f"**Generated:** {datetime.now().strftime('%B %d, %Y at %I:%M %p')}\n\n"
-            )
+            f.write(f"**Generated:** {datetime.now().strftime('%B %d, %Y at %I:%M %p')}\n\n")
             f.write("---\n\n")
 
             # Legend
@@ -347,13 +339,9 @@ class RecordGenerator:
 
             # Footer
             f.write("---\n\n")
-            f.write(
-                f"*Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}*\n"
-            )
+            f.write(f"*Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}*\n")
 
-    def get_top_n_by_event(
-        self, df: pd.DataFrame, course: str, n: int = 10
-    ) -> dict[str, list[RecordEntry]]:
+    def get_top_n_by_event(self, df: pd.DataFrame, course: str, n: int = 10) -> dict[str, list[RecordEntry]]:
         """Get top N swimmers for each event (across all age groups).
 
         Args:
@@ -454,9 +442,7 @@ class RecordGenerator:
             f.write(f"# {team_name}\n")
             f.write(f"## {event_name} - All-Time Top {len(entries)}\n")
             f.write(f"### {course_full} ({course.upper()})\n\n")
-            f.write(
-                f"**Generated:** {datetime.now().strftime('%B %d, %Y at %I:%M %p')}\n\n"
-            )
+            f.write(f"**Generated:** {datetime.now().strftime('%B %d, %Y at %I:%M %p')}\n\n")
             f.write("---\n\n")
 
             # Legend
@@ -480,18 +466,13 @@ class RecordGenerator:
                     if len(meet) > 40:
                         meet = meet[:37] + "..."
 
-                    f.write(
-                        f"| {rank} | {entry.time} | {athlete_name} | "
-                        f"{entry.age} | {entry.date} | {meet} |\n"
-                    )
+                    f.write(f"| {rank} | {entry.time} | {athlete_name} | {entry.age} | {entry.date} | {meet} |\n")
             else:
                 f.write("*No times recorded for this event.*\n")
 
             # Footer
             f.write("\n---\n\n")
-            f.write(
-                f"*Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}*\n"
-            )
+            f.write(f"*Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}*\n")
 
     def filter_by_season(self, df: pd.DataFrame, season: int) -> pd.DataFrame:
         """Filter swims by season year.
@@ -550,9 +531,9 @@ class RecordGenerator:
         with open(output_path, "w") as f:
             # Header
             f.write(f"# {team_name}\n")
-            f.write(f"## {season-1}-{season} Season Records Summary\n\n")
+            f.write(f"## {season - 1}-{season} Season Records Summary\n\n")
             f.write(f"**Generated:** {datetime.now().strftime('%B %d, %Y')}\n")
-            f.write(f"**Season:** September 1, {season-1} - August 31, {season}\n")
+            f.write(f"**Season:** September 1, {season - 1} - August 31, {season}\n")
             f.write(f"**Total Records Broken:** {len(new_records_sorted)}\n\n")
             f.write("---\n\n")
 
@@ -565,7 +546,9 @@ class RecordGenerator:
 
             # Part 1: All Records Broken in Chronological Order
             f.write("## Part 1: All Records Broken in Chronological Order\n\n")
-            f.write(f"Complete list of all {len(new_records_sorted)} team records broken during the {season-1}-{season} season,\n")  # noqa: E501
+            f.write(
+                f"Complete list of all {len(new_records_sorted)} team records broken during the {season - 1}-{season} season,\n"  # noqa: E501
+            )
             f.write("listed in the order they were broken. Note that some of these records may have\n")
             f.write("been broken multiple times during the season.\n\n")
 
@@ -594,8 +577,10 @@ class RecordGenerator:
             f.write("---\n\n")
 
             # Part 2: Standing Records Set in the Season
-            f.write(f"## Part 2: Standing Records Set in the {season-1}-{season} Season\n\n")
-            f.write(f"These {len(new_records_sorted)} records were set during the {season-1}-{season} season and remain\n")  # noqa: E501
+            f.write(f"## Part 2: Standing Records Set in the {season - 1}-{season} Season\n\n")
+            f.write(
+                f"These {len(new_records_sorted)} records were set during the {season - 1}-{season} season and remain\n"
+            )  # noqa: E501
             f.write("the current team records as of the end of the season (not broken by a subsequent swim).\n\n")
 
             # Group by gender (extracted from team_name if present)

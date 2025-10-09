@@ -21,10 +21,7 @@ class StatusCommand:
     def run(self) -> None:
         """Execute the status command."""
         console.print()
-        console.print(Panel.fit(
-            "[bold cyan]Swim Data Tool[/bold cyan]",
-            subtitle=f"v{__version__}"
-        ))
+        console.print(Panel.fit("[bold cyan]Swim Data Tool[/bold cyan]", subtitle=f"v{__version__}"))
         console.print()
 
         # Check for .env file

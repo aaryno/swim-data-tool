@@ -13,23 +13,24 @@ except ImportError:
     print("Install with: pip install pdfplumber")
     sys.exit(1)
 
+
 def analyze_pdf(pdf_path):
     """Analyze PDF structure"""
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"Analyzing: {pdf_path}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     with pdfplumber.open(pdf_path) as pdf:
         print(f"Total Pages: {len(pdf.pages)}")
         print("\nFirst 5 pages analysis:\n")
 
         for i, page in enumerate(pdf.pages[:5]):
-            print(f"\n--- Page {i+1} ---")
+            print(f"\n--- Page {i + 1} ---")
 
             # Extract text
             text = page.extract_text()
             if text:
-                lines = text.split('\n')[:10]  # First 10 lines
+                lines = text.split("\n")[:10]  # First 10 lines
                 print("First 10 lines of text:")
                 for j, line in enumerate(lines, 1):
                     print(f"  {j:2d}: {line[:80]}")  # First 80 chars
@@ -46,11 +47,12 @@ def analyze_pdf(pdf_path):
 
             print(f"\nPage dimensions: {page.width} x {page.height}")
 
+
 if __name__ == "__main__":
     pdfs = [
         "aia-pdfs/2024-state-championships.pdf",
         "aia-pdfs/2020-state-championships.pdf",
-        "aia-pdfs/2015-state-championships.pdf"
+        "aia-pdfs/2015-state-championships.pdf",
     ]
 
     for pdf_path in pdfs:
@@ -59,8 +61,6 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"\nERROR analyzing {pdf_path}: {e}")
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("Analysis complete!")
-    print(f"{'='*80}\n")
-
-
+    print(f"{'=' * 80}\n")

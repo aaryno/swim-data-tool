@@ -120,6 +120,5 @@ class SwimDataSource(ABC):
         # This will be implemented in each source if needed
         # Default: delegate to models.events.parse_api_event
         from swim_data_tool.models.events import parse_api_event
+
         return parse_api_event(event_str)
-
-

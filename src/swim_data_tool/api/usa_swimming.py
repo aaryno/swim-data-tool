@@ -41,13 +41,15 @@ class USASwimmingAPI:
     def __init__(self):
         """Initialize the API client."""
         self.session = requests.Session()
-        self.session.headers.update({
-            "accept": "application/json, text/plain, */*",
-            "authorization": f"Bearer {self.AUTH_TOKEN}",
-            "content-type": "application/json;charset=UTF-8",
-            "origin": "https://data.usaswimming.org",
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-        })
+        self.session.headers.update(
+            {
+                "accept": "application/json, text/plain, */*",
+                "authorization": f"Bearer {self.AUTH_TOKEN}",
+                "content-type": "application/json;charset=UTF-8",
+                "origin": "https://data.usaswimming.org",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+            }
+        )
 
     def query_times_multi_year(
         self,
@@ -73,7 +75,7 @@ class USASwimmingAPI:
             year_int = int(year)
             # Handle date format differences
             separator = "-" if year_int >= 2026 else " - "
-            year_str = f"{year} (9/1/{year_int-1}{separator}8/31/{year})"
+            year_str = f"{year} (9/1/{year_int - 1}{separator}8/31/{year})"
             year_members.append(year_str)
 
         # Build the query payload
@@ -313,17 +315,17 @@ class USASwimmingAPI:
                     # If we didn't hit the 500 limit, we're done
                     if len(df) < 500:
                         combined = (
-                            df.drop_duplicates(subset=["UsasSwimTimeKey"])
-                            if "UsasSwimTimeKey" in df.columns
-                            else df
+                            df.drop_duplicates(subset=["UsasSwimTimeKey"]) if "UsasSwimTimeKey" in df.columns else df
                         )
                         # Extract Gender from EventCompetitionCategoryKey
                         # USA Swimming separates events by gender: 1 = Female, 2 = Male
                         # API returns values as strings
                         if "EventCompetitionCategoryKey" in combined.columns:
-                            combined["Gender"] = combined["EventCompetitionCategoryKey"].map({
-                                "1": "F", "2": "M", 1: "F", 2: "M"
-                            }).fillna("")
+                            combined["Gender"] = (
+                                combined["EventCompetitionCategoryKey"]
+                                .map({"1": "F", "2": "M", 1: "F", 2: "M"})
+                                .fillna("")
+                            )
                         else:
                             combined["Gender"] = ""
                         return combined
@@ -379,9 +381,9 @@ class USASwimmingAPI:
             # USA Swimming separates events by gender: 1 = Female, 2 = Male
             # API returns values as strings
             if "EventCompetitionCategoryKey" in combined.columns:
-                combined["Gender"] = combined["EventCompetitionCategoryKey"].map({
-                    "1": "F", "2": "M", 1: "F", 2: "M"
-                }).fillna("")
+                combined["Gender"] = (
+                    combined["EventCompetitionCategoryKey"].map({"1": "F", "2": "M", 1: "F", 2: "M"}).fillna("")
+                )
             else:
                 combined["Gender"] = ""
 
@@ -417,35 +419,41 @@ class USASwimmingAPI:
             # Split into first and last name
             first_name = name_parts[0]
             last_name = " ".join(name_parts[1:])
-            metadata.append({
-                "jaql": {
-                    "title": "FirstAndPreferredName",
-                    "dim": "[Persons.FirstAndPreferredName]",
-                    "datatype": "text",
-                    "filter": {"contains": first_name}
-                },
-                "panel": "scope"
-            })
-            metadata.append({
-                "jaql": {
-                    "title": "LastName",
-                    "dim": "[Persons.LastName]",
-                    "datatype": "text",
-                    "filter": {"contains": last_name}
-                },
-                "panel": "scope"
-            })
+            metadata.append(
+                {
+                    "jaql": {
+                        "title": "FirstAndPreferredName",
+                        "dim": "[Persons.FirstAndPreferredName]",
+                        "datatype": "text",
+                        "filter": {"contains": first_name},
+                    },
+                    "panel": "scope",
+                }
+            )
+            metadata.append(
+                {
+                    "jaql": {
+                        "title": "LastName",
+                        "dim": "[Persons.LastName]",
+                        "datatype": "text",
+                        "filter": {"contains": last_name},
+                    },
+                    "panel": "scope",
+                }
+            )
         else:
             # Just search by full name or last name
-            metadata.append({
-                "jaql": {
-                    "title": "LastName",
-                    "dim": "[Persons.LastName]",
-                    "datatype": "text",
-                    "filter": {"contains": swimmer_name}
-                },
-                "panel": "scope"
-            })
+            metadata.append(
+                {
+                    "jaql": {
+                        "title": "LastName",
+                        "dim": "[Persons.LastName]",
+                        "datatype": "text",
+                        "filter": {"contains": swimmer_name},
+                    },
+                    "panel": "scope",
+                }
+            )
 
         payload = {
             "metadata": metadata,
@@ -457,8 +465,7 @@ class USASwimmingAPI:
 
         try:
             response = self.session.post(
-                "https://usaswimming.sisense.com/api/datasources/Public%20Person%20Search/jaql",
-                json=payload
+                "https://usaswimming.sisense.com/api/datasources/Public%20Person%20Search/jaql", json=payload
             )
 
             if response.status_code != 200:
@@ -496,19 +503,19 @@ class USASwimmingAPI:
                             "title": "PersonKey",
                             "dim": "[UsasSwimTime.PersonKey]",
                             "datatype": "numeric",
-                            "filter": {"equals": person_key}
+                            "filter": {"equals": person_key},
                         },
-                        "panel": "scope"
+                        "panel": "scope",
                     },
                     {
                         "jaql": {
                             "title": "SeasonYearDesc",
                             "dim": "[SeasonCalendar.SeasonYearDesc]",
                             "datatype": "text",
-                            "filter": {"members": ["2025 (9/1/2024 - 8/31/2025)"]}  # Current season only
+                            "filter": {"members": ["2025 (9/1/2024 - 8/31/2025)"]},  # Current season only
                         },
-                        "panel": "scope"
-                    }
+                        "panel": "scope",
+                    },
                 ]
 
                 team_payload = {
@@ -579,32 +586,45 @@ class USASwimmingAPI:
         for year_str in season_years:
             year_int = int(year_str)
             separator = "-" if year_int >= 2026 else " - "
-            year_members.append(f"{year_str} (9/1/{year_int-1}{separator}8/31/{year_str})")
+            year_members.append(f"{year_str} (9/1/{year_int - 1}{separator}8/31/{year_str})")
 
         # Query for all swims by team code
         metadata = [
             {"jaql": {"title": "PersonKey", "dim": "[UsasSwimTime.PersonKey]", "datatype": "numeric"}},
             {"jaql": {"title": "FullName", "dim": "[UsasSwimTime.FullName]", "datatype": "text"}},
-            {"jaql": {"title": "EventCompetitionCategoryKey", "dim": "[UsasSwimTime.EventCompetitionCategoryKey]", "datatype": "numeric"}},  # noqa: E501
-            {"jaql": {"title": "SwimDate", "dim": "[SeasonCalendar.CalendarDate (Calendar)]", "datatype": "datetime", "level": "days"}},  # noqa: E501
+            {
+                "jaql": {
+                    "title": "EventCompetitionCategoryKey",
+                    "dim": "[UsasSwimTime.EventCompetitionCategoryKey]",
+                    "datatype": "numeric",
+                }
+            },  # noqa: E501
+            {
+                "jaql": {
+                    "title": "SwimDate",
+                    "dim": "[SeasonCalendar.CalendarDate (Calendar)]",
+                    "datatype": "datetime",
+                    "level": "days",
+                }
+            },  # noqa: E501
             {
                 "jaql": {
                     "title": "TeamCode",
                     "dim": "[OrgUnit.Level4Code]",
                     "datatype": "text",
-                    "filter": {"equals": team_code.upper()}
+                    "filter": {"equals": team_code.upper()},
                 },
-                "panel": "scope"
+                "panel": "scope",
             },
             {
                 "jaql": {
                     "title": "SeasonYearDesc",
                     "dim": "[SeasonCalendar.SeasonYearDesc]",
                     "datatype": "text",
-                    "filter": {"members": year_members}
+                    "filter": {"members": year_members},
                 },
-                "panel": "scope"
-            }
+                "panel": "scope",
+            },
         ]
 
         payload = {
@@ -636,22 +656,24 @@ class USASwimmingAPI:
             # USA Swimming separates events by gender: 1 = Female, 2 = Male
             # API returns values as strings
             if "EventCompetitionCategoryKey" in df.columns:
-                df["Gender"] = df["EventCompetitionCategoryKey"].map({
-                    "1": "F", "2": "M", 1: "F", 2: "M"
-                }).fillna("")
+                df["Gender"] = df["EventCompetitionCategoryKey"].map({"1": "F", "2": "M", 1: "F", 2: "M"}).fillna("")
             else:
                 df["Gender"] = ""
 
             # Aggregate by PersonKey to get roster
             # Group by PersonKey only since it's unique per swimmer
             # (FullName can vary slightly across years/meets)
-            roster = df.groupby("PersonKey").agg(
-                FullName=("FullName", "first"),  # Take first occurrence of name
-                Gender=("Gender", "first"),  # Take first (should be consistent for each person)
-                FirstSwimDate=("SwimDate", "min"),
-                LastSwimDate=("SwimDate", "max"),
-                SwimCount=("SwimDate", "count")
-            ).reset_index()
+            roster = (
+                df.groupby("PersonKey")
+                .agg(
+                    FullName=("FullName", "first"),  # Take first occurrence of name
+                    Gender=("Gender", "first"),  # Take first (should be consistent for each person)
+                    FirstSwimDate=("SwimDate", "min"),
+                    LastSwimDate=("SwimDate", "max"),
+                    SwimCount=("SwimDate", "count"),
+                )
+                .reset_index()
+            )
 
             # Note: Relay entries (PersonKey=0) are included in the roster
             # but will be skipped during import since they don't have individual PersonKeys.
@@ -687,7 +709,7 @@ class USASwimmingAPI:
             year_int = int(year_str)
             # 2026+ has no spaces, earlier years have spaces
             separator = "-" if year_int >= 2026 else " - "
-            year_members.append(f"{year_str} (9/1/{year_int-1}{separator}8/31/{year_str})")
+            year_members.append(f"{year_str} (9/1/{year_int - 1}{separator}8/31/{year_str})")
 
         # Build metadata for team search
         metadata = [
@@ -696,9 +718,7 @@ class USASwimmingAPI:
                     "title": "Team",
                     "dim": "[OrgUnit.Level4Name]",
                     "datatype": "text",
-                    "filter": {
-                        "contains": team_name
-                    }
+                    "filter": {"contains": team_name},
                 }
             },
             {
@@ -720,12 +740,10 @@ class USASwimmingAPI:
                     "title": "SeasonYearDesc",
                     "dim": "[SeasonCalendar.SeasonYearDesc]",
                     "datatype": "text",
-                    "filter": {
-                        "members": year_members
-                    }
+                    "filter": {"members": year_members},
                 },
-                "panel": "scope"
-            }
+                "panel": "scope",
+            },
         ]
 
         # Add LSC filter if provided
@@ -773,4 +791,3 @@ class USASwimmingAPI:
 
         except Exception:
             return []
-

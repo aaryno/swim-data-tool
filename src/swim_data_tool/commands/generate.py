@@ -40,9 +40,7 @@ class GenerateRecordsCommand:
         # Verify data directory exists
         if not self.data_dir.exists():
             console.print("[red]❌ Data directory not found.[/red]")
-            console.print(
-                "[yellow]Run 'swim-data-tool init' first to set up your team.[/yellow]"
-            )
+            console.print("[yellow]Run 'swim-data-tool init' first to set up your team.[/yellow]")
             return
 
         # Create records directory
@@ -57,9 +55,7 @@ class GenerateRecordsCommand:
 
         if df_all.empty:
             console.print("[yellow]⚠️  No swimmer data found.[/yellow]")
-            console.print(
-                "[yellow]Run 'swim-data-tool import swimmers' to download data.[/yellow]"
-            )
+            console.print("[yellow]Run 'swim-data-tool import swimmers' to download data.[/yellow]")
             return
 
         console.print(f"[green]✓[/green] Loaded {len(df_all):,} swims\n")
@@ -79,7 +75,9 @@ class GenerateRecordsCommand:
 
         if has_gender:
             gender_counts = df_normalized["Gender"].value_counts()
-            console.print(f"[cyan]👥 Gender split: {gender_counts.get('M', 0)} male swims, {gender_counts.get('F', 0)} female swims[/cyan]\n")  # noqa: E501
+            console.print(
+                f"[cyan]👥 Gender split: {gender_counts.get('M', 0)} male swims, {gender_counts.get('F', 0)} female swims[/cyan]\n"  # noqa: E501
+            )
 
         # Determine which courses to process
         if self.course:
@@ -116,9 +114,7 @@ class GenerateRecordsCommand:
                     # Generate markdown with gender in filename
                     output_path = course_dir / f"records-{gender_label.lower()}.md"
                     team_name_with_gender = f"{self.team_name} - {gender_label}"
-                    generator.generate_records_markdown(
-                        records, course, team_name_with_gender, output_path
-                    )
+                    generator.generate_records_markdown(records, course, team_name_with_gender, output_path)
 
                     console.print(f"[green]    Generated:[/green] {output_path.relative_to(self.cwd)}")
 
@@ -142,13 +138,9 @@ class GenerateRecordsCommand:
 
                 # Generate markdown
                 output_path = course_dir / "records.md"
-                generator.generate_records_markdown(
-                    records, course, self.team_name, output_path
-                )
+                generator.generate_records_markdown(records, course, self.team_name, output_path)
 
-                console.print(
-                    f"[green]✅ Generated:[/green] {output_path.relative_to(self.cwd)}\n"
-                )
+                console.print(f"[green]✅ Generated:[/green] {output_path.relative_to(self.cwd)}\n")
 
         # Summary
         console.print("[bold green]✓ Record Generation Complete![/bold green]\n")
@@ -189,12 +181,7 @@ class GenerateRecordsCommand:
    [cyan]swim-data-tool publish[/cyan]"""
 
         console.print()
-        console.print(Panel(
-            next_steps,
-            title="Next Steps",
-            border_style="green",
-            expand=False
-        ))
+        console.print(Panel(next_steps, title="Next Steps", border_style="green", expand=False))
 
 
 class GenerateTop10Command:
@@ -227,9 +214,7 @@ class GenerateTop10Command:
         # Verify data directory exists
         if not self.data_dir.exists():
             console.print("[red]❌ Data directory not found.[/red]")
-            console.print(
-                "[yellow]Run 'swim-data-tool init' first to set up your team.[/yellow]"
-            )
+            console.print("[yellow]Run 'swim-data-tool init' first to set up your team.[/yellow]")
             return
 
         # Create records directory
@@ -244,9 +229,7 @@ class GenerateTop10Command:
 
         if df_all.empty:
             console.print("[yellow]⚠️  No swimmer data found.[/yellow]")
-            console.print(
-                "[yellow]Run 'swim-data-tool import swimmers' to download data.[/yellow]"
-            )
+            console.print("[yellow]Run 'swim-data-tool import swimmers' to download data.[/yellow]")
             return
 
         console.print(f"[green]✓[/green] Loaded {len(df_all):,} swims\n")
@@ -297,9 +280,7 @@ class GenerateTop10Command:
                     for event_code, entries in top_n.items():
                         output_path = course_dir / f"{event_code}.md"
                         team_name_with_gender = f"{self.team_name} - {gender_label}"
-                        generator.generate_top10_markdown(
-                            top_n, course, event_code, team_name_with_gender, output_path
-                        )
+                        generator.generate_top10_markdown(top_n, course, event_code, team_name_with_gender, output_path)
                         generated_files.append((f"{course.upper()} {gender_label}", output_path.relative_to(self.cwd)))
 
                 console.print()
@@ -321,14 +302,10 @@ class GenerateTop10Command:
             # Generate markdown for each event
             for event_code, entries in top_n.items():
                 output_path = course_dir / f"{event_code}.md"
-                generator.generate_top10_markdown(
-                    top_n, course, event_code, self.team_name, output_path
-                )
+                generator.generate_top10_markdown(top_n, course, event_code, self.team_name, output_path)
                 generated_files.append((course.upper(), output_path.relative_to(self.cwd)))
 
-            console.print(
-                f"[green]✅ Generated {len(top_n)} event files for {course.upper()}[/green]\n"
-            )
+            console.print(f"[green]✅ Generated {len(top_n)} event files for {course.upper()}[/green]\n")
 
         # Summary
         console.print(f"[bold green]✓ Top {self.n} Generation Complete![/bold green]\n")
@@ -366,12 +343,7 @@ class GenerateTop10Command:
    [cyan]swim-data-tool publish[/cyan]"""
 
             console.print()
-            console.print(Panel(
-                next_steps,
-                title="Next Steps",
-                border_style="green",
-                expand=False
-            ))
+            console.print(Panel(next_steps, title="Next Steps", border_style="green", expand=False))
         else:
             console.print("[yellow]No files generated. Check your data.[/yellow]")
 
@@ -406,9 +378,7 @@ class GenerateAnnualCommand:
         # Verify data directory exists
         if not self.data_dir.exists():
             console.print("[red]❌ Data directory not found.[/red]")
-            console.print(
-                "[yellow]Run 'swim-data-tool init' first to set up your team.[/yellow]"
-            )
+            console.print("[yellow]Run 'swim-data-tool init' first to set up your team.[/yellow]")
             return
 
         # Create records directory
@@ -423,9 +393,7 @@ class GenerateAnnualCommand:
 
         if df_all.empty:
             console.print("[yellow]⚠️  No swimmer data found.[/yellow]")
-            console.print(
-                "[yellow]Run 'swim-data-tool import swimmers' to download data.[/yellow]"
-            )
+            console.print("[yellow]Run 'swim-data-tool import swimmers' to download data.[/yellow]")
             return
 
         console.print(f"[green]✓[/green] Loaded {len(df_all):,} swims\n")
@@ -525,9 +493,7 @@ class GenerateAnnualCommand:
                 season_records, team_records, self.season, course, self.team_name, output_path
             )
 
-            console.print(
-                f"[green]✅ Generated:[/green] {output_path.relative_to(self.cwd)}\n"
-            )
+            console.print(f"[green]✅ Generated:[/green] {output_path.relative_to(self.cwd)}\n")
             generated_files.append((course.upper(), output_path.relative_to(self.cwd)))
 
         # Summary
@@ -561,11 +527,6 @@ class GenerateAnnualCommand:
    [cyan]swim-data-tool publish[/cyan]"""
 
             console.print()
-            console.print(Panel(
-                next_steps,
-                title="Next Steps",
-                border_style="green",
-                expand=False
-            ))
+            console.print(Panel(next_steps, title="Next Steps", border_style="green", expand=False))
         else:
             console.print(f"[yellow]No summaries generated for {self.season}. Check your data.[/yellow]")

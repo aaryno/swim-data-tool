@@ -74,12 +74,7 @@ class InitCommand:
 
         # Success message
         console.print("\n[bold green]✓ Initialization complete![/bold green]\n")
-        console.print(Panel(
-            self._get_next_steps(team_info),
-            title="Next Steps",
-            border_style="green",
-            expand=False
-        ))
+        console.print(Panel(self._get_next_steps(team_info), title="Next Steps", border_style="green", expand=False))
 
     def _suggest_team_code(self, club_name: str) -> str:
         """Suggest a team code based on club name patterns.
@@ -125,10 +120,7 @@ class InitCommand:
             Selected TeamInfo or None if cancelled
         """
         while True:
-            swimmer_name = Prompt.ask(
-                "\n[cyan]Enter a swimmer's name from this team[/cyan]",
-                default=""
-            )
+            swimmer_name = Prompt.ask("\n[cyan]Enter a swimmer's name from this team[/cyan]", default="")
 
             if not swimmer_name:
                 return None
@@ -146,7 +138,9 @@ class InitCommand:
 
             # Display results in a table
             if len(teams) > 1:
-                console.print(f"[yellow]Note: This swimmer is registered with {len(teams)} club(s). Select the correct one:[/yellow]\n")  # noqa: E501
+                console.print(
+                    f"[yellow]Note: This swimmer is registered with {len(teams)} club(s). Select the correct one:[/yellow]\n"  # noqa: E501
+                )
 
             table = Table(title=f"Found {len(teams)} club(s) for this swimmer")
             table.add_column("#", style="cyan", width=3)
@@ -168,13 +162,12 @@ class InitCommand:
 
             # Let user select
             selection = Prompt.ask(
-                "[cyan]Select team number, 's' to search again, or 'c' to cancel[/cyan]",
-                default="1"
+                "[cyan]Select team number, 's' to search again, or 'c' to cancel[/cyan]", default="1"
             )
 
-            if selection.lower() == 'c':
+            if selection.lower() == "c":
                 return None
-            elif selection.lower() == 's':
+            elif selection.lower() == "s":
                 continue
 
             try:
@@ -196,11 +189,7 @@ class InitCommand:
         console.print("  2. MaxPreps (high school)")
         console.print()
 
-        data_source_choice = Prompt.ask(
-            "Select data source",
-            choices=["1", "2"],
-            default="1"
-        )
+        data_source_choice = Prompt.ask("Select data source", choices=["1", "2"], default="1")
 
         data_source = "usa_swimming" if data_source_choice == "1" else "maxpreps"
         console.print()
@@ -254,8 +243,7 @@ class InitCommand:
                 console.print(f"[dim]Suggested based on club name: {suggested_code}[/dim]")
 
             team_code = Prompt.ask(
-                "USA Swimming team code (or '?' to search)",
-                default=suggested_code if suggested_code else ""
+                "USA Swimming team code (or '?' to search)", default=suggested_code if suggested_code else ""
             )
 
             # Handle search request
@@ -327,16 +315,18 @@ class InitCommand:
         console.print(f"  Team: {info['CLUB_NAME']} ({info['CLUB_ABBREVIATION']})")
         console.print(f"  Data Source: {info.get('DATA_SOURCE', 'usa_swimming')}")
 
-        if info.get('DATA_SOURCE') == 'maxpreps':
+        if info.get("DATA_SOURCE") == "maxpreps":
             # MaxPreps summary
             console.print(f"  School Slug: {info.get('MAXPREPS_SCHOOL_SLUG', 'N/A')}")
-            console.print(f"  Location: {info.get('MAXPREPS_CITY', 'N/A')}, {info.get('MAXPREPS_STATE', 'N/A').upper()}")  # noqa: E501
+            console.print(
+                f"  Location: {info.get('MAXPREPS_CITY', 'N/A')}, {info.get('MAXPREPS_STATE', 'N/A').upper()}"
+            )  # noqa: E501
             console.print(f"  Default Season: {info.get('MAXPREPS_SEASONS', 'N/A')}")
         else:
             # USA Swimming summary
             console.print(f"  Team Code: {info['USA_SWIMMING_TEAM_CODE']}")
             console.print(f"  LSC: {info['LSC_NAME']} ({info['LSC_CODE']})")
-            if info['SWIMCLOUD_TEAM_ID']:
+            if info["SWIMCLOUD_TEAM_ID"]:
                 console.print(f"  SwimCloud ID: {info['SWIMCLOUD_TEAM_ID']}")
             console.print(f"  Years: {info['START_YEAR']}-{info['END_YEAR']}")
 
@@ -387,9 +377,7 @@ class InitCommand:
 
         console.print(f"  Created {len(files_created)} files: {', '.join(files_created)}")
 
-    def _write_from_template(
-        self, template_name: str, output_path: Path, replacements: dict
-    ) -> None:
+    def _write_from_template(self, template_name: str, output_path: Path, replacements: dict) -> None:
         """Write a file from a template with variable substitution.
 
         Args:
@@ -416,7 +404,7 @@ class InitCommand:
 
     def _get_next_steps(self, info: dict) -> str:
         """Get next steps message."""
-        if info.get('DATA_SOURCE') == 'maxpreps':
+        if info.get("DATA_SOURCE") == "maxpreps":
             # MaxPreps workflow (no classify step)
             return """1. Review configuration:
    swim-data-tool config

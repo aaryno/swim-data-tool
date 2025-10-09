@@ -102,7 +102,7 @@ def roster(
     seasons: tuple[str, ...],
     start_season: str | None,
     end_season: str | None,
-    output: str | None
+    output: str | None,
 ) -> None:
     """Fetch team roster from any data source.
 
@@ -151,9 +151,7 @@ def import_swimmer(ctx: click.Context, person_key: int) -> None:
     help="Data source (default: usa_swimming)",
 )
 @click.option(
-    "--file",
-    type=click.Path(exists=True),
-    help="CSV file with swimmer IDs (default: data/lookups/roster-{source}.csv)"
+    "--file", type=click.Path(exists=True), help="CSV file with swimmer IDs (default: data/lookups/roster-{source}.csv)"
 )
 @click.option("--dry-run", is_flag=True, help="Show what would be downloaded")
 @click.option("--force", is_flag=True, help="Re-download all swimmers (overwrite existing files)")

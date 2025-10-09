@@ -66,7 +66,9 @@ class ImportSwimmersCommand:
 
             if not self.csv_file:
                 console.print("[yellow]⚠️  No roster file found[/yellow]")
-                console.print(f"Please run: [cyan]swim-data-tool roster --source={source.source_name.lower().replace(' ', '_')}[/cyan] first\n")  # noqa: E501
+                console.print(
+                    f"Please run: [cyan]swim-data-tool roster --source={source.source_name.lower().replace(' ', '_')}[/cyan] first\n"  # noqa: E501
+                )
                 console.print("Or specify a CSV file with: [cyan]swim-data-tool import swimmers --file=FILE[/cyan]")
                 return
 
@@ -100,7 +102,9 @@ class ImportSwimmersCommand:
 
         # Create gender map if gender column exists
         gender_map = {}
-        gender_col = "gender" if "gender" in swimmers_df.columns else "Gender" if "Gender" in swimmers_df.columns else None  # noqa: E501
+        gender_col = (
+            "gender" if "gender" in swimmers_df.columns else "Gender" if "Gender" in swimmers_df.columns else None
+        )  # noqa: E501
         if gender_col:
             for _, row in swimmers_df.iterrows():
                 swimmer_id = str(row[id_field])
@@ -203,9 +207,7 @@ class ImportSwimmersCommand:
             TimeElapsedColumn(),
             console=console,
         ) as progress:
-            task = progress.add_task(
-                "[cyan]Downloading swimmers...", total=len(to_download)
-            )
+            task = progress.add_task("[cyan]Downloading swimmers...", total=len(to_download))
 
             for url_or_id, name, swimmer_id in to_download:
                 progress.update(task, description=f"[cyan]Fetching: {name[:30]}")
@@ -289,12 +291,7 @@ class ImportSwimmersCommand:
    [cyan]cat data/records/scy/records.md[/cyan]"""
 
         console.print()
-        console.print(Panel(
-            next_steps,
-            title="Next Steps",
-            border_style="green",
-            expand=False
-        ))
+        console.print(Panel(next_steps, title="Next Steps", border_style="green", expand=False))
 
     def _get_existing_swimmer_files(self, swimmers_dir: Path, id_field: str) -> set[str]:
         """Get set of swimmer IDs that already have cached files.
@@ -325,4 +322,3 @@ class ImportSwimmersCommand:
         safe_name = name.lower().replace(" ", "-")
         safe_name = "".join(c for c in safe_name if c.isalnum() or c == "-")
         return safe_name
-

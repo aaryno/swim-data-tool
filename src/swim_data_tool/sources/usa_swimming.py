@@ -49,6 +49,7 @@ class USASwimmingSource(SwimDataSource):
         if seasons is None:
             # Default to current year if not specified
             from datetime import datetime
+
             seasons = [str(datetime.now().year)]
 
         # The API expects team_code and season_years parameters
@@ -92,6 +93,7 @@ class USASwimmingSource(SwimDataSource):
             start_year = int(os.getenv("START_YEAR", "1998"))
         if end_year is None:
             from datetime import datetime
+
             end_year = int(os.getenv("END_YEAR", str(datetime.now().year)))
 
         # Download from API
@@ -154,4 +156,3 @@ class USASwimmingSource(SwimDataSource):
             "END_YEAR": "2024",
             "CLUB_NAME": "Your team name",
         }
-

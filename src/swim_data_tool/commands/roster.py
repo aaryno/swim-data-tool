@@ -23,7 +23,7 @@ class RosterCommand:
         output: str | None = None,
         source: str | None = None,
         start_season: str | None = None,
-        end_season: str | None = None
+        end_season: str | None = None,
     ):
         self.cwd = cwd
         self.seasons = seasons
@@ -152,7 +152,7 @@ class RosterCommand:
             seasons = expanded_seasons
 
             # Show concise range if consecutive years
-            if len(seasons) > 3 and all(seasons[i] == str(int(seasons[i-1]) + 1) for i in range(1, len(seasons))):
+            if len(seasons) > 3 and all(seasons[i] == str(int(seasons[i - 1]) + 1) for i in range(1, len(seasons))):
                 console.print(f"[dim]Seasons: {seasons[0]}-{seasons[-1]}[/dim]\n")
             else:
                 console.print(f"[dim]Seasons: {', '.join(seasons)}[/dim]\n")
@@ -181,8 +181,8 @@ class RosterCommand:
             else:
                 gender_counts = roster_df[gender_col].value_counts()
 
-            males = gender_counts.get('M', 0)
-            females = gender_counts.get('F', 0)
+            males = gender_counts.get("M", 0)
+            females = gender_counts.get("F", 0)
             if males > 0 or females > 0:
                 console.print(f"[green]✓ Gender data: {males} males, {females} females[/green]\n")
             else:
@@ -267,9 +267,4 @@ Example:
    [cyan]swim-data-tool import swimmer {first_swimmer_id}{source_flag}[/cyan]  # {first_swimmer_name}"""
 
         console.print()
-        console.print(Panel(
-            next_steps,
-            title="Next Steps",
-            border_style="green",
-            expand=False
-        ))
+        console.print(Panel(next_steps, title="Next Steps", border_style="green", expand=False))

@@ -40,10 +40,7 @@ def get_source(source_name: str | None = None) -> SwimDataSource:
     # Get source class
     if source_name not in _SOURCES:
         available = ", ".join(_SOURCES.keys())
-        raise ValueError(
-            f"Unknown data source: '{source_name}'. "
-            f"Available sources: {available}"
-        )
+        raise ValueError(f"Unknown data source: '{source_name}'. Available sources: {available}")
 
     source_class = _SOURCES[source_name]
     return source_class()
@@ -77,12 +74,14 @@ def _auto_register_sources() -> None:
     """Auto-register available data source implementations."""
     try:
         from swim_data_tool.sources.usa_swimming import USASwimmingSource
+
         register_source("usa_swimming", USASwimmingSource)
     except ImportError:
         pass  # USA Swimming source not available
 
     try:
         from swim_data_tool.sources.maxpreps import MaxPrepsSource
+
         register_source("maxpreps", MaxPrepsSource)
     except ImportError:
         pass  # MaxPreps source not available
@@ -90,5 +89,3 @@ def _auto_register_sources() -> None:
 
 # Register on module import
 _auto_register_sources()
-
-

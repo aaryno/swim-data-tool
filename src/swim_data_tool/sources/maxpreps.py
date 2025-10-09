@@ -49,6 +49,7 @@ class MaxPrepsSource(SwimDataSource):
         if self._playwright is None:
             try:
                 from playwright.sync_api import sync_playwright
+
                 self._playwright = sync_playwright().start()
                 self._browser = self._playwright.chromium.launch(headless=True)
             except ImportError:
@@ -190,15 +191,17 @@ class MaxPrepsSource(SwimDataSource):
             grade = cols[2].get_text(strip=True) if len(cols) > 2 else ""
             grade_numeric = self._parse_grade(grade)
 
-            athletes.append({
-                "careerid": careerid,
-                "swimmer_name": name,
-                "grade": grade,
-                "grade_numeric": grade_numeric,
-                "school_name": school_slug.replace("-", " ").title(),
-                "season": season,
-                "athlete_url": f"{self.base_url}{href}",
-            })
+            athletes.append(
+                {
+                    "careerid": careerid,
+                    "swimmer_name": name,
+                    "grade": grade,
+                    "grade_numeric": grade_numeric,
+                    "school_name": school_slug.replace("-", " ").title(),
+                    "season": season,
+                    "athlete_url": f"{self.base_url}{href}",
+                }
+            )
 
         print(f"    Found {len(athletes)} athletes")
 
@@ -258,12 +261,12 @@ class MaxPrepsSource(SwimDataSource):
             # Girls: /athletes/NAME/swimming/girls/stats/?careerid=XXX
             # Boys: /athletes/NAME/swimming/stats/?careerid=XXX
             stats_url = None
-            for link in main_soup.find_all('a', href=True):
-                href = link['href']
-                if '/swimming/girls/stats/' in href or '/swimming/stats/' in href:
-                    if '?' in href:  # Has careerid
+            for link in main_soup.find_all("a", href=True):
+                href = link["href"]
+                if "/swimming/girls/stats/" in href or "/swimming/stats/" in href:
+                    if "?" in href:  # Has careerid
                         # Convert relative URL to absolute
-                        if href.startswith('/'):
+                        if href.startswith("/"):
                             stats_url = f"{self.base_url}{href}"
                         else:
                             stats_url = href
@@ -444,21 +447,23 @@ class MaxPrepsSource(SwimDataSource):
                     # Relays: "200 Medley Relay" -> "200 MEDLEY RELAY SCY"
                     normalized_event = self._normalize_event_name(event_name)
 
-                    all_swims.append({
-                        "swimmer_id": metadata.get("careerId", ""),
-                        "Name": swimmer_name,  # Standard: "Name"
-                        "Gender": gender,  # Standard: "Gender"
-                        "Age": None,  # Not available on MaxPreps
-                        "grade": grade_numeric,
-                        "Event": normalized_event,  # Standard: "Event"
-                        "SwimTime": time,  # Standard: "SwimTime"
-                        "SwimDate": date,  # Standard: "SwimDate"
-                        "MeetName": meet_name,  # Standard: "MeetName"
-                        "round": round_type,
-                        "splits": splits,
-                        "Team": school_name,  # Standard: "Team"
-                        "source": "maxpreps",
-                    })
+                    all_swims.append(
+                        {
+                            "swimmer_id": metadata.get("careerId", ""),
+                            "Name": swimmer_name,  # Standard: "Name"
+                            "Gender": gender,  # Standard: "Gender"
+                            "Age": None,  # Not available on MaxPreps
+                            "grade": grade_numeric,
+                            "Event": normalized_event,  # Standard: "Event"
+                            "SwimTime": time,  # Standard: "SwimTime"
+                            "SwimDate": date,  # Standard: "SwimDate"
+                            "MeetName": meet_name,  # Standard: "MeetName"
+                            "round": round_type,
+                            "splits": splits,
+                            "Team": school_name,  # Standard: "Team"
+                            "source": "maxpreps",
+                        }
+                    )
 
         return pd.DataFrame(all_swims)
 
@@ -594,7 +599,9 @@ class MaxPrepsSource(SwimDataSource):
         if gender_path == "boys":
             schedule_url = f"{self.base_url}/{self.state}/{self.city}/{school_slug}/swimming/fall/{season}/schedule/"
         else:
-            schedule_url = f"{self.base_url}/{self.state}/{self.city}/{school_slug}/swimming/{gender_path}/fall/{season}/schedule/"  # noqa: E501
+            schedule_url = (
+                f"{self.base_url}/{self.state}/{self.city}/{school_slug}/swimming/{gender_path}/fall/{season}/schedule/"  # noqa: E501
+            )
 
         print(f"  Fetching {gender_path} relay results: {season}")
 
@@ -612,10 +619,10 @@ class MaxPrepsSource(SwimDataSource):
         # Find meet result links (look for "Box Score" links or links to /local/contest/)
         meet_links = []
         for link in schedule_soup.find_all("a", href=True):
-            href = link['href']
+            href = link["href"]
             # Look for contest URLs or "Box Score" text
-            if '/local/contest/' in href or 'contestid=' in href:
-                full_url = href if href.startswith('http') else f"{self.base_url}{href}"
+            if "/local/contest/" in href or "contestid=" in href:
+                full_url = href if href.startswith("http") else f"{self.base_url}{href}"
                 if full_url not in meet_links:
                     meet_links.append(full_url)
 
@@ -640,7 +647,7 @@ class MaxPrepsSource(SwimDataSource):
                 for meta in meet_soup.find_all(["div", "span", "p"]):
                     text = meta.get_text(strip=True)
                     # Look for date pattern like "9/14/2024"
-                    date_match = re.search(r'(\d{1,2}/\d{1,2}/\d{4})', text)
+                    date_match = re.search(r"(\d{1,2}/\d{1,2}/\d{4})", text)
                     if date_match:
                         meet_date = date_match.group(1)
                         break
@@ -681,23 +688,25 @@ class MaxPrepsSource(SwimDataSource):
                                     time = cols[-1].get_text(strip=True)
 
                                     # If last column doesn't look like a time, try second-to-last
-                                    if not re.match(r'\d+:\d+\.\d+', time) and len(cols) >= 4:
+                                    if not re.match(r"\d+:\d+\.\d+", time) and len(cols) >= 4:
                                         time = cols[-2].get_text(strip=True)
 
-                                    if time and re.match(r'\d+:\d+\.\d+', time):
+                                    if time and re.match(r"\d+:\d+\.\d+", time):
                                         # Normalize event name
                                         normalized_event = self._normalize_event_name(relay_event)
 
-                                        all_relays.append({
-                                            "Event": normalized_event,
-                                            "SwimTime": time,
-                                            "SwimDate": meet_date,
-                                            "MeetName": meet_name,
-                                            "Team": "Tanque Verde (Tucson, AZ)",
-                                            "place": place,
-                                            "season": season,
-                                            "source": "maxpreps",
-                                        })
+                                        all_relays.append(
+                                            {
+                                                "Event": normalized_event,
+                                                "SwimTime": time,
+                                                "SwimDate": meet_date,
+                                                "MeetName": meet_name,
+                                                "Team": "Tanque Verde (Tucson, AZ)",
+                                                "place": place,
+                                                "season": season,
+                                                "source": "maxpreps",
+                                            }
+                                        )
                                         print(f"      ✓ {relay_event}: {place} - {time}")
 
             except Exception as e:
@@ -712,4 +721,3 @@ class MaxPrepsSource(SwimDataSource):
             self._browser.close()
         if self._playwright:
             self._playwright.stop()
-

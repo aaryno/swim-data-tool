@@ -168,12 +168,8 @@ def validate_canonical_dataframe(df: Any) -> tuple[bool, list[str]]:
 
     # Check event_course values
     if "event_course" in df.columns:
-        invalid_courses = df[~df["event_course"].isin(["scy", "lcm", "scm", None])][
-            "event_course"
-        ].unique()
+        invalid_courses = df[~df["event_course"].isin(["scy", "lcm", "scm", None])]["event_course"].unique()
         if len(invalid_courses) > 0:
             errors.append(f"Invalid course values: {', '.join(map(str, invalid_courses))}")
 
     return len(errors) == 0, errors
-
-

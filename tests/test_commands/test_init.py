@@ -55,11 +55,7 @@ class TestInitCommand:
         # Write output with substitutions
         output_file = tmp_path / "output.txt"
         cmd.TEMPLATE_DIR = tmp_path  # Override to use tmp_path
-        cmd._write_from_template(
-            "test.template",
-            output_file,
-            {"NAME": "Alice", "AGE": "30"}
-        )
+        cmd._write_from_template("test.template", output_file, {"NAME": "Alice", "AGE": "30"})
 
         # Check output
         assert output_file.exists()
@@ -109,4 +105,3 @@ class TestTemplateContent:
 
         assert "{{CLUB_NAME}}" in content
         assert "{{REPO_NAME}}" in content
-

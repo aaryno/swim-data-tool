@@ -226,12 +226,7 @@ class PublishCommand:
 3. Share the link:
    Send {repo_url_display} to your team!"""
 
-        console.print(Panel(
-            next_steps,
-            title="Next Steps",
-            border_style="green",
-            expand=False
-        ))
+        console.print(Panel(next_steps, title="Next Steps", border_style="green", expand=False))
 
     def _generate_readme(self, readme_path: Path, files_to_copy: list[Path]) -> None:
         """Generate README.md for the public repository.
@@ -299,7 +294,7 @@ class PublishCommand:
                 course_names = {  # noqa: E501
                     "scy": "Short Course Yards",
                     "lcm": "Long Course Meters",
-                    "scm": "Short Course Meters"
+                    "scm": "Short Course Meters",
                 }
                 course_name = course_names[course]
                 readme_content += f"### {course_name} ({course.upper()})\n\n"
@@ -324,7 +319,7 @@ class PublishCommand:
             course_names = {  # noqa: E501
                 "scy": "Short Course Yards",
                 "lcm": "Long Course Meters",
-                "scm": "Short Course Meters"
+                "scm": "Short Course Meters",
             }
             for course in ["scy", "lcm", "scm"]:
                 if top10_by_course[course]:
@@ -443,4 +438,3 @@ For questions about these records, please contact the team administrators.
 
         # Write README
         readme_path.write_text(readme_content)
-

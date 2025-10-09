@@ -63,29 +63,21 @@ class ClassifyUnattachedCommand:
         stats = self._analyze_swims(swimmer_files)
 
         # Display statistics
-        total_swims = stats['total_swims']
+        total_swims = stats["total_swims"]
         console.print(
-            f"Found [cyan]{total_swims:,}[/cyan] total swims "
-            f"across [cyan]{len(swimmer_files)}[/cyan] swimmers"
+            f"Found [cyan]{total_swims:,}[/cyan] total swims across [cyan]{len(swimmer_files)}[/cyan] swimmers"
         )
-        club_pct = stats['club_affiliated'] / total_swims * 100
-        console.print(
-            f"  • [green]{stats['club_affiliated']:,}[/green] "
-            f"club-affiliated swims ({club_pct:.1f}%)"
-        )
-        unattached_pct = stats['unattached'] / total_swims * 100
-        console.print(
-            f"  • [yellow]{stats['unattached']:,}[/yellow] "
-            f"unattached swims ({unattached_pct:.1f}%)\n"
-        )
+        club_pct = stats["club_affiliated"] / total_swims * 100
+        console.print(f"  • [green]{stats['club_affiliated']:,}[/green] club-affiliated swims ({club_pct:.1f}%)")
+        unattached_pct = stats["unattached"] / total_swims * 100
+        console.print(f"  • [yellow]{stats['unattached']:,}[/yellow] unattached swims ({unattached_pct:.1f}%)\n")
 
         console.print("[bold]Unattached swim breakdown:[/bold]")
         console.print(f"  • [cyan]{stats['high_school']}[/cyan] high school swims")
-        prob_60 = stats['probationary_60']
-        prob_120 = stats['probationary_120']
+        prob_60 = stats["probationary_60"]
+        prob_120 = stats["probationary_120"]
         console.print(
-            f"  • [cyan]{stats['probationary']}[/cyan] probationary swims "
-            f"(60-day: {prob_60}, 120-day: {prob_120})"
+            f"  • [cyan]{stats['probationary']}[/cyan] probationary swims (60-day: {prob_60}, 120-day: {prob_120})"
         )
         console.print(f"  • [cyan]{stats['college']}[/cyan] college swims")
         console.print(f"  • [cyan]{stats['misc_unattached']}[/cyan] misc unattached swims\n")
@@ -116,7 +108,7 @@ class ClassifyUnattachedCommand:
                 "probationary": 0,
                 "college": 0,
                 "misc_unattached": 0,
-            }
+            },
         }
 
         with Progress(
@@ -127,15 +119,11 @@ class ClassifyUnattachedCommand:
             TimeElapsedColumn(),
             console=console,
         ) as progress_bar:
-            task = progress_bar.add_task(
-                "[cyan]Processing classifications...", total=to_process
-            )
+            task = progress_bar.add_task("[cyan]Processing classifications...", total=to_process)
 
             for csv_file in swimmer_files:
                 swimmer_name = csv_file.stem
-                progress_bar.update(
-                    task, description=f"[cyan]Classifying: {swimmer_name[:40]}"
-                )
+                progress_bar.update(task, description=f"[cyan]Classifying: {swimmer_name[:40]}")
 
                 # Classify this swimmer
                 result = self._classify_swimmer(csv_file, decisions)
@@ -177,31 +165,22 @@ class ClassifyUnattachedCommand:
 
         # Summary
         console.print("\n[bold green]✓ Classification Complete![/bold green]\n")
-        total_processed = total_stats['official'] + total_stats['excluded']
+        total_processed = total_stats["official"] + total_stats["excluded"]
         console.print(f"  Total swims processed: {total_processed:,}")
-        official_pct = total_stats['official'] / total_processed * 100
-        console.print(
-            f"  [green]Official team swims: {total_stats['official']:,}[/green] "
-            f"({official_pct:.1f}%)"
-        )
-        excluded_pct = total_stats['excluded'] / total_processed * 100
-        console.print(
-            f"  [yellow]Excluded swims: {total_stats['excluded']:,}[/yellow] "
-            f"({excluded_pct:.1f}%)\n"
-        )
+        official_pct = total_stats["official"] / total_processed * 100
+        console.print(f"  [green]Official team swims: {total_stats['official']:,}[/green] ({official_pct:.1f}%)")
+        excluded_pct = total_stats["excluded"] / total_processed * 100
+        console.print(f"  [yellow]Excluded swims: {total_stats['excluded']:,}[/yellow] ({excluded_pct:.1f}%)\n")
 
         console.print("[bold]Breakdown by decision:[/bold]")
         console.print(f"  • Club-affiliated: {total_stats['by_category']['official']:,}")
-        hs_count = total_stats['by_category']['high_school']
+        hs_count = total_stats["by_category"]["high_school"]
         console.print(f"  • High school: {hs_count:,} ({decisions['high_school']}d)")
-        prob_count = total_stats['by_category']['probationary']
+        prob_count = total_stats["by_category"]["probationary"]
         console.print(f"  • Probationary: {prob_count:,} ({decisions['probationary']}d)")
         console.print(f"  • College: {total_stats['by_category']['college']:,} ({decisions['college']}d)")
-        misc_count = total_stats['by_category']['misc_unattached']
-        console.print(
-            f"  • Misc unattached: {misc_count:,} "
-            f"({decisions['misc_unattached']}d)\n"
-        )
+        misc_count = total_stats["by_category"]["misc_unattached"]
+        console.print(f"  • Misc unattached: {misc_count:,} ({decisions['misc_unattached']}d)\n")
 
         console.print("Output written to:")
         console.print(f"  • [green]{official_dir}/[/green]")
@@ -226,12 +205,7 @@ class ClassifyUnattachedCommand:
    [cyan]swim-data-tool classify unattached --high-school=include --probationary=include[/cyan]"""
 
         console.print()
-        console.print(Panel(
-            next_steps,
-            title="Next Steps",
-            border_style="green",
-            expand=False
-        ))
+        console.print(Panel(next_steps, title="Next Steps", border_style="green", expand=False))
 
     def _analyze_swims(self, swimmer_files: list[Path]) -> dict:
         """Analyze all swims to gather statistics."""
@@ -336,10 +310,9 @@ class ClassifyUnattachedCommand:
             console.print("\n[bold]High School Swims[/bold]")
             console.print(f"Found {stats['high_school']} high school swims")
             console.print("[dim]Swimmer competed for high school team while being club member[/dim]")
-            decisions["high_school"] = "include" if Confirm.ask(
-                "Include high school swims in records?",
-                default=False
-            ) else "exclude"
+            decisions["high_school"] = (
+                "include" if Confirm.ask("Include high school swims in records?", default=False) else "exclude"
+            )
 
         # Probationary
         if self.cli_decisions.get("probationary"):
@@ -353,10 +326,9 @@ class ClassifyUnattachedCommand:
             console.print(f"  • {stats['probationary_60']} swims under 60-day rule (post-2023)")
             console.print(f"  • {stats['probationary_120']} swims under 120-day rule (pre-2023)")
             console.print("[dim]Unattached swims within transfer period before joining club[/dim]")
-            decisions["probationary"] = "include" if Confirm.ask(
-                "Include probationary swims in records?",
-                default=True
-            ) else "exclude"
+            decisions["probationary"] = (
+                "include" if Confirm.ask("Include probationary swims in records?", default=True) else "exclude"
+            )
 
         # College
         if self.cli_decisions.get("college"):
@@ -368,10 +340,9 @@ class ClassifyUnattachedCommand:
             console.print("\n[bold]College Swims[/bold]")
             console.print(f"Found {stats['college']} college swims")
             console.print("[dim]Unattached swims during college years (ages 18-22)[/dim]")
-            decisions["college"] = "include" if Confirm.ask(
-                "Include unattached college swims in records?",
-                default=False
-            ) else "exclude"
+            decisions["college"] = (
+                "include" if Confirm.ask("Include unattached college swims in records?", default=False) else "exclude"
+            )
 
         # Misc unattached
         if self.cli_decisions.get("misc_unattached"):
@@ -383,10 +354,9 @@ class ClassifyUnattachedCommand:
             console.print("\n[bold]Misc Unattached Swims[/bold]")
             console.print(f"Found {stats['misc_unattached']} misc unattached swims")
             console.print("[dim]Other unattached swims (time trials, pre-club, etc.)[/dim]")
-            decisions["misc_unattached"] = "include" if Confirm.ask(
-                "Include misc unattached swims in records?",
-                default=False
-            ) else "exclude"
+            decisions["misc_unattached"] = (
+                "include" if Confirm.ask("Include misc unattached swims in records?", default=False) else "exclude"
+            )
 
         return decisions
 
@@ -404,7 +374,7 @@ class ClassifyUnattachedCommand:
                     "probationary": 0,
                     "college": 0,
                     "misc_unattached": 0,
-                }
+                },
             }
 
         if "Team" not in df.columns or len(df) == 0:
@@ -417,7 +387,7 @@ class ClassifyUnattachedCommand:
                     "probationary": 0,
                     "college": 0,
                     "misc_unattached": 0,
-                }
+                },
             }
 
         # Add classification columns
