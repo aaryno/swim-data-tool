@@ -17,10 +17,10 @@ class RosterCommand:
     """Fetch team roster and export to CSV."""
 
     def __init__(
-        self, 
-        cwd: Path, 
-        seasons: list[str] | None = None, 
-        output: str | None = None, 
+        self,
+        cwd: Path,
+        seasons: list[str] | None = None,
+        output: str | None = None,
         source: str | None = None,
         start_season: str | None = None,
         end_season: str | None = None
@@ -34,18 +34,18 @@ class RosterCommand:
 
     def _expand_season_range(self, start: str, end: str) -> list[str]:
         """Expand season range to list of seasons.
-        
+
         Args:
             start: Start season (e.g., "12-13")
             end: End season (e.g., "25-26")
-        
+
         Returns:
             List of seasons (e.g., ["12-13", "13-14", ..., "25-26"])
         """
         # Parse start and end years
         start_first, start_second = map(int, start.split("-"))
         end_first, end_second = map(int, end.split("-"))
-        
+
         # Handle century boundary (e.g., 99-00 transitions to 00-01)
         # Assume all seasons are in 2000s for now
         if start_first > end_first:
@@ -53,19 +53,19 @@ class RosterCommand:
             start_first += 1900 if start_first >= 90 else 2000
         else:
             start_first += 2000
-        
+
         if end_first < 50:
             end_first += 2000
         else:
             end_first += 1900
-        
+
         # Generate all seasons in range
         seasons = []
         for year in range(start_first, end_first + 1):
             year_str = f"{year % 100:02d}"
             next_year_str = f"{(year + 1) % 100:02d}"
             seasons.append(f"{year_str}-{next_year_str}")
-        
+
         return seasons
 
     def run(self) -> None:
@@ -75,7 +75,7 @@ class RosterCommand:
         if not env_file.exists():
             console.print("[red]Error: Not initialized. Run 'swim-data-tool init' first.[/red]")
             return
-        
+
         # Load environment variables from .env file
         load_dotenv(env_file)
 
@@ -86,12 +86,12 @@ class RosterCommand:
             console.print(f"[red]Error: {e}[/red]")
             return
 
-        console.print(f"\n[bold cyan]🏊 Fetching Roster[/bold cyan]")
+        console.print("\n[bold cyan]🏊 Fetching Roster[/bold cyan]")
         console.print(f"[dim]Data source: {source.source_name}[/dim]\n")
 
         # Get source-specific configuration
         team_name = os.getenv("CLUB_NAME", "Team")
-        
+
         if source.source_name == "USA Swimming":
             team_code = os.getenv("USA_SWIMMING_TEAM_CODE")
             if not team_code:
@@ -114,7 +114,7 @@ class RosterCommand:
 
         console.print(f"[cyan]Team:[/cyan] {team_name}")
         console.print(f"[cyan]Team ID:[/cyan] {team_id}")
-        
+
         # Handle season range (--start-season and --end-season)
         seasons = self.seasons
         if self.start_season or self.end_season:
@@ -148,9 +148,9 @@ class RosterCommand:
                         expanded_seasons.append(season)
                 else:
                     expanded_seasons.append(season)
-            
+
             seasons = expanded_seasons
-            
+
             # Show concise range if consecutive years
             if len(seasons) > 3 and all(seasons[i] == str(int(seasons[i-1]) + 1) for i in range(1, len(seasons))):
                 console.print(f"[dim]Seasons: {seasons[0]}-{seasons[-1]}[/dim]\n")
@@ -170,17 +170,17 @@ class RosterCommand:
 
         # Display results
         console.print(f"[green]✓ Found {len(roster_df)} swimmers[/green]")
-        
+
         # Count genders
         if "gender" in roster_df.columns or "Gender" in roster_df.columns:
             gender_col = "gender" if "gender" in roster_df.columns else "Gender"
-            
+
             # Filter out relays for USA Swimming (PersonKey=0)
             if source.swimmer_id_field == "PersonKey":
                 gender_counts = roster_df[roster_df["PersonKey"] != 0][gender_col].value_counts()
             else:
                 gender_counts = roster_df[gender_col].value_counts()
-            
+
             males = gender_counts.get('M', 0)
             females = gender_counts.get('F', 0)
             if males > 0 or females > 0:
@@ -195,7 +195,7 @@ class RosterCommand:
         table.add_column("ID", style="cyan")
         table.add_column("Name", style="green")
         table.add_column("Gender", style="magenta", justify="center")
-        
+
         # Add source-specific columns
         if source.source_name == "USA Swimming":
             table.add_column("First Swim", style="dim")
@@ -208,14 +208,14 @@ class RosterCommand:
         for _, row in roster_df.head(20).iterrows():
             # Get swimmer ID
             swimmer_id = str(row.get(source.swimmer_id_field, ""))
-            
+
             # Get name (handle different column names)
             name = row.get("swimmer_name", row.get("FullName", ""))
-            
+
             # Get gender
             gender = row.get("gender", row.get("Gender", ""))
             gender_display = "M" if gender == "M" else "F" if gender == "F" else "?"
-            
+
             # Build row based on source
             if source.source_name == "USA Swimming":
                 table.add_row(
@@ -250,13 +250,13 @@ class RosterCommand:
         # Save to CSV
         roster_df.to_csv(output_file, index=False)
         console.print(f"[green]✓ Saved roster to:[/green] {output_file}")
-        
+
         # Show next steps in a nice panel
         first_swimmer_id = str(roster_df.iloc[0][source.swimmer_id_field])
         first_swimmer_name = roster_df.iloc[0].get("swimmer_name", roster_df.iloc[0].get("FullName", ""))
-        
+
         source_flag = f" --source={self.source_name}" if self.source_name else ""
-        
+
         next_steps = f"""To import all {len(roster_df)} swimmers:
    [cyan]swim-data-tool import swimmers{source_flag}[/cyan]
 
@@ -265,7 +265,7 @@ Or test with a few swimmers first:
 
 Example:
    [cyan]swim-data-tool import swimmer {first_swimmer_id}{source_flag}[/cyan]  # {first_swimmer_name}"""
-        
+
         console.print()
         console.print(Panel(
             next_steps,

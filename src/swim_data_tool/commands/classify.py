@@ -8,7 +8,6 @@ from pathlib import Path
 import pandas as pd
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Confirm
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -17,6 +16,7 @@ from rich.progress import (
     TextColumn,
     TimeElapsedColumn,
 )
+from rich.prompt import Confirm
 
 console = Console()
 
@@ -63,13 +63,30 @@ class ClassifyUnattachedCommand:
         stats = self._analyze_swims(swimmer_files)
 
         # Display statistics
-        console.print(f"Found [cyan]{stats['total_swims']:,}[/cyan] total swims across [cyan]{len(swimmer_files)}[/cyan] swimmers")
-        console.print(f"  • [green]{stats['club_affiliated']:,}[/green] club-affiliated swims ({stats['club_affiliated']/stats['total_swims']*100:.1f}%)")
-        console.print(f"  • [yellow]{stats['unattached']:,}[/yellow] unattached swims ({stats['unattached']/stats['total_swims']*100:.1f}%)\n")
+        total_swims = stats['total_swims']
+        console.print(
+            f"Found [cyan]{total_swims:,}[/cyan] total swims "
+            f"across [cyan]{len(swimmer_files)}[/cyan] swimmers"
+        )
+        club_pct = stats['club_affiliated'] / total_swims * 100
+        console.print(
+            f"  • [green]{stats['club_affiliated']:,}[/green] "
+            f"club-affiliated swims ({club_pct:.1f}%)"
+        )
+        unattached_pct = stats['unattached'] / total_swims * 100
+        console.print(
+            f"  • [yellow]{stats['unattached']:,}[/yellow] "
+            f"unattached swims ({unattached_pct:.1f}%)\n"
+        )
 
         console.print("[bold]Unattached swim breakdown:[/bold]")
         console.print(f"  • [cyan]{stats['high_school']}[/cyan] high school swims")
-        console.print(f"  • [cyan]{stats['probationary']}[/cyan] probationary swims (60-day: {stats['probationary_60']}, 120-day: {stats['probationary_120']})")
+        prob_60 = stats['probationary_60']
+        prob_120 = stats['probationary_120']
+        console.print(
+            f"  • [cyan]{stats['probationary']}[/cyan] probationary swims "
+            f"(60-day: {prob_60}, 120-day: {prob_120})"
+        )
         console.print(f"  • [cyan]{stats['college']}[/cyan] college swims")
         console.print(f"  • [cyan]{stats['misc_unattached']}[/cyan] misc unattached swims\n")
 
@@ -83,10 +100,10 @@ class ClassifyUnattachedCommand:
         # Load progress
         progress = self._load_progress(progress_log)
 
-        already_processed = len(progress["processed_swimmers"])
+        len(progress["processed_swimmers"])
         to_process = len(swimmer_files)
 
-        console.print(f"[dim]Processing classifications...[/dim]\n")
+        console.print("[dim]Processing classifications...[/dim]\n")
 
         # Process swimmers with progress bar
         processed_count = 0
@@ -160,32 +177,47 @@ class ClassifyUnattachedCommand:
 
         # Summary
         console.print("\n[bold green]✓ Classification Complete![/bold green]\n")
-        console.print(f"  Total swims processed: {total_stats['official'] + total_stats['excluded']:,}")
-        console.print(f"  [green]Official team swims: {total_stats['official']:,}[/green] ({total_stats['official']/(total_stats['official']+total_stats['excluded'])*100:.1f}%)")
-        console.print(f"  [yellow]Excluded swims: {total_stats['excluded']:,}[/yellow] ({total_stats['excluded']/(total_stats['official']+total_stats['excluded'])*100:.1f}%)\n")
+        total_processed = total_stats['official'] + total_stats['excluded']
+        console.print(f"  Total swims processed: {total_processed:,}")
+        official_pct = total_stats['official'] / total_processed * 100
+        console.print(
+            f"  [green]Official team swims: {total_stats['official']:,}[/green] "
+            f"({official_pct:.1f}%)"
+        )
+        excluded_pct = total_stats['excluded'] / total_processed * 100
+        console.print(
+            f"  [yellow]Excluded swims: {total_stats['excluded']:,}[/yellow] "
+            f"({excluded_pct:.1f}%)\n"
+        )
 
         console.print("[bold]Breakdown by decision:[/bold]")
         console.print(f"  • Club-affiliated: {total_stats['by_category']['official']:,}")
-        console.print(f"  • High school: {total_stats['by_category']['high_school']:,} ({decisions['high_school']}d)")
-        console.print(f"  • Probationary: {total_stats['by_category']['probationary']:,} ({decisions['probationary']}d)")
+        hs_count = total_stats['by_category']['high_school']
+        console.print(f"  • High school: {hs_count:,} ({decisions['high_school']}d)")
+        prob_count = total_stats['by_category']['probationary']
+        console.print(f"  • Probationary: {prob_count:,} ({decisions['probationary']}d)")
         console.print(f"  • College: {total_stats['by_category']['college']:,} ({decisions['college']}d)")
-        console.print(f"  • Misc unattached: {total_stats['by_category']['misc_unattached']:,} ({decisions['misc_unattached']}d)\n")
+        misc_count = total_stats['by_category']['misc_unattached']
+        console.print(
+            f"  • Misc unattached: {misc_count:,} "
+            f"({decisions['misc_unattached']}d)\n"
+        )
 
-        console.print(f"Output written to:")
+        console.print("Output written to:")
         console.print(f"  • [green]{official_dir}/[/green]")
         console.print(f"  • [yellow]{excluded_dir}/[/yellow]")
 
         # Show next steps
         next_steps = """1. Generate team records (uses official swims only):
    [cyan]swim-data-tool generate records[/cyan]
-   
+
    Or generate specific course:
    [cyan]swim-data-tool generate records --course=scy[/cyan]
    [cyan]swim-data-tool generate records --course=lcm[/cyan]
 
 2. View your records:
    [cyan]cat data/records/scy/records.md[/cyan]
-   
+
 3. Check classification output:
    [cyan]ls -lh data/processed/classified/official/[/cyan]
    [cyan]ls -lh data/processed/classified/excluded/[/cyan]
@@ -233,7 +265,7 @@ class ClassifyUnattachedCommand:
                     date_str = df.loc[first_team_idx, "SwimDate"]
                     try:
                         first_team_date = pd.to_datetime(date_str)
-                    except:
+                    except Exception:
                         pass
 
                 # Classify each swim
@@ -258,7 +290,7 @@ class ClassifyUnattachedCommand:
                                 if "SwimDate" in row:
                                     try:
                                         swim_date = pd.to_datetime(row["SwimDate"])
-                                    except:
+                                    except Exception:
                                         pass
 
                                 if swim_date and self._is_probationary(swim_date, first_team_date):
@@ -404,7 +436,7 @@ class ClassifyUnattachedCommand:
             date_str = df.loc[first_team_idx, "SwimDate"]
             try:
                 first_team_date = pd.to_datetime(date_str)
-            except:
+            except Exception:
                 pass
 
         # Classify each swim
@@ -443,13 +475,13 @@ class ClassifyUnattachedCommand:
                     if "SwimDate" in df.columns:
                         try:
                             swim_date = pd.to_datetime(df.loc[idx, "SwimDate"])
-                        except:
+                        except Exception:
                             pass
 
                     if swim_date and self._is_probationary(swim_date, first_team_date):
                         df.loc[idx, "classification_category"] = "Probationary"
                         df.loc[idx, "classification_decision"] = decisions["probationary"]
-                        
+
                         # Determine transfer rule
                         if swim_date >= TRANSFER_RULE_CHANGE_DATE:
                             df.loc[idx, "transfer_rule_days"] = POST_2023_TRANSFER_DAYS
@@ -457,7 +489,7 @@ class ClassifyUnattachedCommand:
                         else:
                             df.loc[idx, "transfer_rule_days"] = PRE_2023_TRANSFER_DAYS
                             df.loc[idx, "classification_rationale"] = "Probationary swim (120-day rule)"
-                        
+
                         stats["probationary"] += 1
                     else:
                         df.loc[idx, "classification_category"] = "MiscUnattached"
@@ -483,7 +515,7 @@ class ClassifyUnattachedCommand:
                     df.loc[idx, "classification_category"] = "OtherClub"
                     df.loc[idx, "classification_decision"] = "exclude"
                     df.loc[idx, "classification_rationale"] = "Swam for different club"
-                    
+
                     # Track if we've seen another club before team join
                     if first_team_idx is None or idx < first_team_idx:
                         seen_other_club = True
@@ -525,7 +557,7 @@ class ClassifyUnattachedCommand:
             try:
                 age = int(row["Age"])
                 return 18 <= age <= 22
-            except:
+            except Exception:
                 pass
         return False
 
@@ -561,7 +593,7 @@ class ClassifyUnattachedCommand:
             try:
                 with open(self.config_file) as f:
                     return json.load(f)
-            except:
+            except Exception:
                 return {}
         return {}
 

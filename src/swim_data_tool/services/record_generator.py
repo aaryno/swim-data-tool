@@ -1,10 +1,10 @@
 """Service for generating team records from swim data."""
 
-import pandas as pd
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+
+import pandas as pd
 
 from swim_data_tool.models.events import (
     AGE_GROUPS,
@@ -565,28 +565,28 @@ class RecordGenerator:
 
             # Part 1: All Records Broken in Chronological Order
             f.write("## Part 1: All Records Broken in Chronological Order\n\n")
-            f.write(f"Complete list of all {len(new_records_sorted)} team records broken during the {season-1}-{season} season,\n")
+            f.write(f"Complete list of all {len(new_records_sorted)} team records broken during the {season-1}-{season} season,\n")  # noqa: E501
             f.write("listed in the order they were broken. Note that some of these records may have\n")
             f.write("been broken multiple times during the season.\n\n")
 
             for idx, (event_code, age_group, rec) in enumerate(new_records_sorted, 1):
                 event_name = format_event_name(event_code)
                 f.write(f"### {idx}. {rec.date} - {course.upper()} {age_group} {event_name}\n\n")
-                
+
                 athlete_name = rec.swimmer_name
                 swim_type = ""
                 if rec.swim_type == "probationary":
                     athlete_name += " ‡"
                     swim_type = "Probationary"
-                
+
                 f.write(f"**Swimmer:** {athlete_name}\n")
                 f.write(f"**Time:** {rec.time}\n")
-                
+
                 meet = rec.meet
                 if len(meet) > 50:
                     meet = meet[:47] + "..."
                 f.write(f"**Meet:** {meet}\n")
-                
+
                 if swim_type:
                     f.write(f"**Type:** {swim_type}\n")
                 f.write("\n")
@@ -595,7 +595,7 @@ class RecordGenerator:
 
             # Part 2: Standing Records Set in the Season
             f.write(f"## Part 2: Standing Records Set in the {season-1}-{season} Season\n\n")
-            f.write(f"These {len(new_records_sorted)} records were set during the {season-1}-{season} season and remain\n")
+            f.write(f"These {len(new_records_sorted)} records were set during the {season-1}-{season} season and remain\n")  # noqa: E501
             f.write("the current team records as of the end of the season (not broken by a subsequent swim).\n\n")
 
             # Group by gender (extracted from team_name if present)
@@ -610,7 +610,7 @@ class RecordGenerator:
                 f.write(f"### {course.upper()} {gender_label}\n\n")
             else:
                 f.write(f"### {course.upper()}\n\n")
-            
+
             f.write("| Age Group | Event | Time | Athlete | Date | Meet |\n")
             f.write("|-----------|-------|------|---------|------|------|\n")
 
@@ -625,17 +625,17 @@ class RecordGenerator:
             for age_group in AGE_GROUPS:
                 if age_group not in age_group_records:
                     continue
-                
+
                 for event_code, rec in age_group_records[age_group]:
                     event_name = format_event_name(event_code)
                     athlete_name = rec.swimmer_name
                     if rec.swim_type == "probationary":
                         athlete_name += " ‡"
-                    
+
                     meet = rec.meet
                     if len(meet) > 45:
                         meet = meet[:42] + "..."
-                    
+
                     f.write(f"| {age_group} | {event_name} | {rec.time} | {athlete_name} | {rec.date} | {meet} |\n")
 
             f.write("\n\n---\n\n")
@@ -644,13 +644,13 @@ class RecordGenerator:
             f.write("## Summary Statistics\n\n")
             f.write(f"- **Total records broken:** {len(new_records_sorted)}\n")
             f.write(f"- **Still standing:** {len(new_records_sorted)} (100.0%)\n")
-            f.write(f"- **Broken again:** 0 (0.0%)\n\n")
+            f.write("- **Broken again:** 0 (0.0%)\n\n")
 
-            f.write(f"**Standing Records by Course:**\n")
+            f.write("**Standing Records by Course:**\n")
             f.write(f"- {course.upper()}: {len(new_records_sorted)} records\n\n")
 
             if gender_label:
-                f.write(f"**Standing Records by Gender:**\n")
+                f.write("**Standing Records by Gender:**\n")
                 f.write(f"- {gender_label}: {len(new_records_sorted)} records\n\n")
 
             # Top record breakers
@@ -664,7 +664,7 @@ class RecordGenerator:
             # Sort by count descending
             sorted_swimmers = sorted(swimmer_counts.items(), key=lambda x: x[1], reverse=True)
 
-            f.write(f"**Top Record Breakers (Standing Records):**\n")
+            f.write("**Top Record Breakers (Standing Records):**\n")
             for swimmer, count in sorted_swimmers[:10]:  # Top 10
                 f.write(f"- {swimmer}: {count} record{'s' if count != 1 else ''}\n")
             f.write("\n")
@@ -673,7 +673,7 @@ class RecordGenerator:
             probationary_count = sum(1 for _, _, rec in new_records_sorted if rec.swim_type == "probationary")
             official_count = len(new_records_sorted) - probationary_count
 
-            f.write(f"**Standing Records by Type:**\n")
+            f.write("**Standing Records by Type:**\n")
             f.write(f"- Official Ford Swims: {official_count}\n")
             if probationary_count > 0:
                 f.write(f"- Probationary (‡): {probationary_count}\n")

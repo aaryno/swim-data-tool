@@ -94,7 +94,7 @@ CANONICAL_COLUMNS = {
 
 def get_canonical_column_order() -> list[str]:
     """Get standard column order for canonical DataFrames.
-    
+
     Returns:
         List of column names in preferred order
     """
@@ -123,10 +123,10 @@ def get_canonical_column_order() -> list[str]:
 
 def validate_canonical_dataframe(df: Any) -> tuple[bool, list[str]]:
     """Validate that a DataFrame conforms to canonical format.
-    
+
     Args:
         df: DataFrame to validate
-    
+
     Returns:
         Tuple of (is_valid, list_of_errors)
     """

@@ -8,7 +8,7 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
-from swim_data_tool.api import USASwimmingAPI, TeamInfo
+from swim_data_tool.api import TeamInfo, USASwimmingAPI
 from swim_data_tool.version import __version__
 
 console = Console()
@@ -83,26 +83,26 @@ class InitCommand:
 
     def _suggest_team_code(self, club_name: str) -> str:
         """Suggest a team code based on club name patterns.
-        
+
         Args:
             club_name: Full club name
-            
+
         Returns:
             Suggested team code (without LSC prefix) or empty string
         """
         # Common patterns to extract abbreviations
         words = club_name.upper().split()
-        
+
         # Look for common abbreviations or first word
         if len(words) >= 2:
             # Take first letter of first few words or first significant word
             # Skip common words
             skip_words = {"THE", "OF", "AND", "&"}
             significant_words = [w for w in words if w not in skip_words]
-            
+
             if significant_words:
                 first_word = significant_words[0]
-                
+
                 # Common patterns
                 if "AQUATIC" in club_name.upper():
                     # e.g., "South West Aquatic Sports" -> could be SWAS or SWA
@@ -112,15 +112,15 @@ class InitCommand:
                 else:
                     # Return first significant word
                     return first_word
-        
+
         return ""
-    
+
     def _interactive_team_search(self) -> TeamInfo | None:
         """Interactive team search via swimmer name.
-        
+
         Instead of searching teams (which can be heavy), we search for
         a swimmer from the team and extract team info from their swims.
-        
+
         Returns:
             Selected TeamInfo or None if cancelled
         """
@@ -129,31 +129,31 @@ class InitCommand:
                 "\n[cyan]Enter a swimmer's name from this team[/cyan]",
                 default=""
             )
-            
+
             if not swimmer_name:
                 return None
-            
+
             console.print("\n[dim]Searching for swimmer...[/dim]")
-            
+
             teams = self.api.search_swimmer_for_team(swimmer_name)
-            
+
             if not teams:
                 console.print("[yellow]No swimmer found with that name.[/yellow]")
                 console.print("[dim]Try a different spelling or search for a current registered swimmer[/dim]")
                 if not Confirm.ask("Search again?", default=True):
                     return None
                 continue
-            
+
             # Display results in a table
             if len(teams) > 1:
-                console.print(f"[yellow]Note: This swimmer is registered with {len(teams)} club(s). Select the correct one:[/yellow]\n")
-            
+                console.print(f"[yellow]Note: This swimmer is registered with {len(teams)} club(s). Select the correct one:[/yellow]\n")  # noqa: E501
+
             table = Table(title=f"Found {len(teams)} club(s) for this swimmer")
             table.add_column("#", style="cyan", width=3)
             table.add_column("Team Code", style="green", width=10)
             table.add_column("Team Name", style="green")
             table.add_column("LSC", style="blue", width=6)
-            
+
             for idx, team in enumerate(teams, 1):
                 table.add_row(
                     str(idx),
@@ -161,22 +161,22 @@ class InitCommand:
                     team.team_name,
                     team.lsc_code,
                 )
-            
+
             console.print()
             console.print(table)
             console.print()
-            
+
             # Let user select
             selection = Prompt.ask(
                 "[cyan]Select team number, 's' to search again, or 'c' to cancel[/cyan]",
                 default="1"
             )
-            
+
             if selection.lower() == 'c':
                 return None
             elif selection.lower() == 's':
                 continue
-            
+
             try:
                 idx = int(selection) - 1
                 if 0 <= idx < len(teams):
@@ -195,13 +195,13 @@ class InitCommand:
         console.print("  1. USA Swimming (club team)")
         console.print("  2. MaxPreps (high school)")
         console.print()
-        
+
         data_source_choice = Prompt.ask(
             "Select data source",
             choices=["1", "2"],
             default="1"
         )
-        
+
         data_source = "usa_swimming" if data_source_choice == "1" else "maxpreps"
         console.print()
 
@@ -219,14 +219,14 @@ class InitCommand:
             console.print("[dim]Find your school at https://www.maxpreps.com[/dim]")
             console.print("[dim]Example URL: maxpreps.com/az/tucson/tanque-verde-hawks/swimming/[/dim]")
             console.print()
-            
+
             school_slug = Prompt.ask("School slug (from URL, e.g., 'tanque-verde-hawks')")
             state = Prompt.ask("State abbreviation (e.g., az)", default="az").lower()
             city = Prompt.ask("City name (e.g., tucson)", default="tucson").lower()
             seasons = Prompt.ask("Default season (e.g., 24-25)", default="24-25")
-            
+
             console.print()
-            
+
             # Use empty values for USA Swimming fields
             team_code = ""
             lsc_code = ""
@@ -234,7 +234,7 @@ class InitCommand:
             swimcloud_id = ""
             start_year = ""
             end_year = ""
-            
+
             # Store MaxPreps specific info
             maxpreps_config = {
                 "DATA_SOURCE": "maxpreps",
@@ -247,17 +247,17 @@ class InitCommand:
             # USA Swimming configuration
             console.print("[dim]Enter '?' to search for team (via swimmer name)[/dim]")
             console.print("[dim]Or enter team code directly (e.g., SWAS, FORD, NOVA)[/dim]")
-            
+
             # Suggest a team code based on the club name
             suggested_code = self._suggest_team_code(club_name)
             if suggested_code:
                 console.print(f"[dim]Suggested based on club name: {suggested_code}[/dim]")
-            
+
             team_code = Prompt.ask(
-                "USA Swimming team code (or '?' to search)", 
+                "USA Swimming team code (or '?' to search)",
                 default=suggested_code if suggested_code else ""
             )
-            
+
             # Handle search request
             if team_code == "?":
                 selected_team = self._interactive_team_search()
@@ -266,7 +266,7 @@ class InitCommand:
                     team_code = selected_team.team_code
                     lsc_code = selected_team.lsc_code
                     lsc_name = selected_team.lsc_name
-                    
+
                     # Confirm or override
                     if not Confirm.ask("\nUse this team's information?", default=True):
                         console.print("[yellow]Please enter team information manually:[/yellow]\n")
@@ -293,7 +293,7 @@ class InitCommand:
             current_year = datetime.now().year
             start_year = Prompt.ask("Data collection start year", default="1998")
             end_year = Prompt.ask("Data collection end year", default=str(current_year))
-            
+
             maxpreps_config = {}
 
         # Generate repo name (kebab-case from club name)
@@ -315,10 +315,10 @@ class InitCommand:
             "INIT_DATE": datetime.now().strftime("%Y-%m-%d"),
             "DATA_SOURCE": data_source,
         }
-        
+
         # Add MaxPreps config if applicable
         info.update(maxpreps_config)
-        
+
         return info
 
     def _show_summary(self, info: dict) -> None:
@@ -326,11 +326,11 @@ class InitCommand:
         console.print("\n[bold]Configuration Summary:[/bold]\n")
         console.print(f"  Team: {info['CLUB_NAME']} ({info['CLUB_ABBREVIATION']})")
         console.print(f"  Data Source: {info.get('DATA_SOURCE', 'usa_swimming')}")
-        
+
         if info.get('DATA_SOURCE') == 'maxpreps':
             # MaxPreps summary
             console.print(f"  School Slug: {info.get('MAXPREPS_SCHOOL_SLUG', 'N/A')}")
-            console.print(f"  Location: {info.get('MAXPREPS_CITY', 'N/A')}, {info.get('MAXPREPS_STATE', 'N/A').upper()}")
+            console.print(f"  Location: {info.get('MAXPREPS_CITY', 'N/A')}, {info.get('MAXPREPS_STATE', 'N/A').upper()}")  # noqa: E501
             console.print(f"  Default Season: {info.get('MAXPREPS_SEASONS', 'N/A')}")
         else:
             # USA Swimming summary
@@ -339,7 +339,7 @@ class InitCommand:
             if info['SWIMCLOUD_TEAM_ID']:
                 console.print(f"  SwimCloud ID: {info['SWIMCLOUD_TEAM_ID']}")
             console.print(f"  Years: {info['START_YEAR']}-{info['END_YEAR']}")
-        
+
         console.print(f"  Directory: {self.cwd}")
 
     def _create_directories(self) -> None:
@@ -423,7 +423,7 @@ class InitCommand:
 
 2. Fetch team roster:
    swim-data-tool roster --source=maxpreps
-   
+
    Or use season range:
    swim-data-tool roster --source=maxpreps --start-season=20-21 --end-season=24-25
 
@@ -446,7 +446,7 @@ For more information, see README.md and claude.md in this directory."""
 
 3. Import swimmer data:
    swim-data-tool import swimmers --file=data/lookups/roster.csv
-   
+
    Or test with individual swimmers first:
    swim-data-tool import swimmer <PERSON_KEY>
 

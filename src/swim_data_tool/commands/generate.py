@@ -72,14 +72,14 @@ class GenerateRecordsCommand:
         # Parse and normalize events
         console.print("[cyan]⚙️  Parsing events...[/cyan]")
         df_normalized = generator.parse_and_normalize_events(df_team)
-        console.print(f"[green]✓[/green] Parsed events\n")
+        console.print("[green]✓[/green] Parsed events\n")
 
         # Check if we have gender data
         has_gender = "Gender" in df_normalized.columns and df_normalized["Gender"].notna().any()
-        
+
         if has_gender:
             gender_counts = df_normalized["Gender"].value_counts()
-            console.print(f"[cyan]👥 Gender split: {gender_counts.get('M', 0)} male swims, {gender_counts.get('F', 0)} female swims[/cyan]\n")
+            console.print(f"[cyan]👥 Gender split: {gender_counts.get('M', 0)} male swims, {gender_counts.get('F', 0)} female swims[/cyan]\n")  # noqa: E501
 
         # Determine which courses to process
         if self.course:
@@ -95,57 +95,57 @@ class GenerateRecordsCommand:
                 # Generate separate files for boys and girls
                 for gender, gender_label in [("M", "Boys"), ("F", "Girls")]:
                     df_gender = generator.filter_by_gender(df_normalized, gender)
-                    
+
                     if df_gender.empty:
                         console.print(f"[dim]  Skipping {gender_label} (no data)[/dim]")
                         continue
-                    
+
                     records = generator.get_best_times_by_event(df_gender, course)
-                    
+
                     if not records:
                         console.print(f"[dim]  Skipping {gender_label} {course.upper()} (no records)[/dim]")
                         continue
-                    
+
                     total_records = sum(len(age_records) for age_records in records.values())
                     console.print(f"[green]  ✓ {gender_label}:[/green] {total_records} records")
-                    
+
                     # Create course directory
                     course_dir = self.records_dir / course
                     course_dir.mkdir(exist_ok=True)
-                    
+
                     # Generate markdown with gender in filename
                     output_path = course_dir / f"records-{gender_label.lower()}.md"
                     team_name_with_gender = f"{self.team_name} - {gender_label}"
                     generator.generate_records_markdown(
                         records, course, team_name_with_gender, output_path
                     )
-                    
+
                     console.print(f"[green]    Generated:[/green] {output_path.relative_to(self.cwd)}")
-                
+
                 console.print()
             else:
                 # No gender data - generate combined records (legacy)
-                console.print(f"[dim]No gender data available - generating combined records[/dim]")
-                
+                console.print("[dim]No gender data available - generating combined records[/dim]")
+
                 records = generator.get_best_times_by_event(df_normalized, course)
-                
+
                 if not records:
                     console.print(f"[yellow]⚠️  No {course.upper()} data found.[/yellow]\n")
                     continue
-                
+
                 total_records = sum(len(age_records) for age_records in records.values())
                 console.print(f"[green]✓[/green] Found {total_records} records\n")
-                
+
                 # Create course directory
                 course_dir = self.records_dir / course
                 course_dir.mkdir(exist_ok=True)
-                
+
                 # Generate markdown
                 output_path = course_dir / "records.md"
                 generator.generate_records_markdown(
                     records, course, self.team_name, output_path
                 )
-                
+
                 console.print(
                     f"[green]✅ Generated:[/green] {output_path.relative_to(self.cwd)}\n"
                 )
@@ -164,20 +164,20 @@ class GenerateRecordsCommand:
                 table.add_row(course.upper(), str(file_path.relative_to(self.cwd)))
 
         console.print(table)
-        
+
         # Show next steps
         view_commands = []
         for course in courses:
             file_path = self.records_dir / course / "records.md"
             if file_path.exists():
                 view_commands.append(f"   [cyan]cat {file_path.relative_to(self.cwd)}[/cyan]")
-        
+
         next_steps = f"""1. View your team records:
 {chr(10).join(view_commands)}
 
 2. Publish to GitHub (no PII - safe to share):
    [cyan]swim-data-tool publish[/cyan]
-   
+
    First-time setup in .env:
    [dim]PUBLIC_REPO_URL=https://github.com/user/team-records.git[/dim]
    [dim]PUBLIC_REPO_LOCAL=/tmp/team-records[/dim]
@@ -187,7 +187,7 @@ class GenerateRecordsCommand:
    [cyan]swim-data-tool classify unattached[/cyan]
    [cyan]swim-data-tool generate records[/cyan]
    [cyan]swim-data-tool publish[/cyan]"""
-        
+
         console.print()
         console.print(Panel(
             next_steps,
@@ -259,7 +259,7 @@ class GenerateTop10Command:
         # Parse and normalize events
         console.print("[cyan]⚙️  Parsing events...[/cyan]")
         df_normalized = generator.parse_and_normalize_events(df_team)
-        console.print(f"[green]✓[/green] Parsed events\n")
+        console.print("[green]✓[/green] Parsed events\n")
 
         # Check if we have gender data
         has_gender = "Gender" in df_normalized.columns and df_normalized["Gender"].notna().any()
@@ -283,17 +283,17 @@ class GenerateTop10Command:
                     df_gender = generator.filter_by_gender(df_normalized, gender)
                     if df_gender.empty:
                         continue
-                    
+
                     top_n = generator.get_top_n_by_event(df_gender, course, self.n)
-                    
+
                     if not top_n:
                         continue
-                    
+
                     console.print(f"[green]  ✓ {gender_label}:[/green] {len(top_n)} events")
-                    
+
                     course_dir = self.records_dir / "top10" / course / gender_label.lower()
                     course_dir.mkdir(parents=True, exist_ok=True)
-                    
+
                     for event_code, entries in top_n.items():
                         output_path = course_dir / f"{event_code}.md"
                         team_name_with_gender = f"{self.team_name} - {gender_label}"
@@ -301,10 +301,10 @@ class GenerateTop10Command:
                             top_n, course, event_code, team_name_with_gender, output_path
                         )
                         generated_files.append((f"{course.upper()} {gender_label}", output_path.relative_to(self.cwd)))
-                
+
                 console.print()
                 continue
-            
+
             # Get top N for all events (legacy - no gender split)
             top_n = generator.get_top_n_by_event(df_normalized, course, self.n)
 
@@ -351,7 +351,7 @@ class GenerateTop10Command:
 
             # Show next steps
             example_file = generated_files[0][1] if generated_files else None
-            
+
             next_steps = f"""1. View top {self.n} lists:
    [cyan]cat {example_file}[/cyan]
    [cyan]ls data/records/top10/[/cyan]
@@ -438,7 +438,7 @@ class GenerateAnnualCommand:
         # Parse and normalize events
         console.print("[cyan]⚙️  Parsing events...[/cyan]")
         df_normalized = generator.parse_and_normalize_events(df_team)
-        console.print(f"[green]✓[/green] Parsed events\n")
+        console.print("[green]✓[/green] Parsed events\n")
 
         # Check if we have gender data
         has_gender = "Gender" in df_normalized.columns and df_normalized["Gender"].notna().any()
@@ -446,7 +446,7 @@ class GenerateAnnualCommand:
         # Filter by season
         console.print(f"[cyan]📆 Filtering {self.season} season data...[/cyan]")
         df_season = generator.filter_by_season(df_normalized, self.season)
-        
+
         if df_season.empty:
             console.print(f"[yellow]⚠️  No data found for {self.season} season.[/yellow]")
             console.print(f"[yellow]Check that swimmers have data with SwimDate in {self.season}.[/yellow]")
@@ -472,32 +472,32 @@ class GenerateAnnualCommand:
                 for gender, gender_label in [("M", "Boys"), ("F", "Girls")]:
                     df_season_gender = generator.filter_by_gender(df_season, gender)
                     df_all_gender = generator.filter_by_gender(df_normalized, gender)
-                    
+
                     if df_season_gender.empty:
                         console.print(f"[dim]  Skipping {gender_label} (no season data)[/dim]")
                         continue
-                    
+
                     season_records = generator.get_best_times_by_event(df_season_gender, course)
                     if not season_records:
                         continue
-                    
+
                     team_records = generator.get_best_times_by_event(df_all_gender, course)
-                    
+
                     total_season_records = sum(len(age_records) for age_records in season_records.values())
                     console.print(f"[green]  ✓ {gender_label}:[/green] {total_season_records} season bests")
-                    
+
                     annual_dir = self.records_dir / "annual"
                     annual_dir.mkdir(exist_ok=True)
-                    
+
                     output_path = annual_dir / f"{self.season}-{course}-{gender_label.lower()}.md"
                     team_name_with_gender = f"{self.team_name} - {gender_label}"
                     generator.generate_annual_summary_markdown(
                         season_records, team_records, self.season, course, team_name_with_gender, output_path
                     )
-                    
+
                     console.print(f"[green]    Generated:[/green] {output_path.relative_to(self.cwd)}")
                     generated_files.append((f"{course.upper()} {gender_label}", output_path.relative_to(self.cwd)))
-                
+
                 console.print()
                 continue
 
@@ -546,7 +546,7 @@ class GenerateAnnualCommand:
 
             # Show next steps
             example_file = generated_files[0][1] if generated_files else None
-            
+
             next_steps = f"""1. View {self.season} season summary:
    [cyan]cat {example_file}[/cyan]
 

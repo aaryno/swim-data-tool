@@ -5,6 +5,7 @@ SwimDataSource interface.
 """
 
 import os
+
 import pandas as pd
 
 from swim_data_tool.api.usa_swimming import USASwimmingAPI
@@ -13,7 +14,7 @@ from swim_data_tool.sources.base import SwimDataSource
 
 class USASwimmingSource(SwimDataSource):
     """USA Swimming data source implementation.
-    
+
     Provides access to USA Swimming times database via Sisense API.
     """
 
@@ -33,11 +34,11 @@ class USASwimmingSource(SwimDataSource):
 
     def get_team_roster(self, team_id: str, seasons: list[str] | None = None) -> pd.DataFrame:
         """Fetch team roster from USA Swimming.
-        
+
         Args:
             team_id: Team code (e.g., "AZ-SHS", "RAYS", "FORD")
             seasons: List of years (e.g., ["2024", "2023"])
-        
+
         Returns:
             DataFrame with columns:
                 - PersonKey: Unique identifier
@@ -65,12 +66,12 @@ class USASwimmingSource(SwimDataSource):
         end_year: int | None = None,
     ) -> pd.DataFrame:
         """Fetch swimmer history from USA Swimming.
-        
+
         Args:
             swimmer_id: PersonKey (as string)
             start_year: Start year (defaults to 1998)
             end_year: End year (defaults to current year)
-        
+
         Returns:
             DataFrame with canonical columns:
                 - swimmer_id: PersonKey (as string)
@@ -85,7 +86,7 @@ class USASwimmingSource(SwimDataSource):
                 - source: "usa_swimming"
         """
         person_key = int(swimmer_id)
-        
+
         # Use defaults if not specified
         if start_year is None:
             start_year = int(os.getenv("START_YEAR", "1998"))
@@ -105,7 +106,7 @@ class USASwimmingSource(SwimDataSource):
 
         # Normalize to canonical format
         df = df.copy()
-        
+
         # Rename columns to canonical names
         column_mapping = {
             "Name": "swimmer_name",
@@ -117,21 +118,21 @@ class USASwimmingSource(SwimDataSource):
             "Gender": "gender",
             "Event": "event",
         }
-        
+
         df = df.rename(columns=column_mapping)
-        
+
         # Add source tracking
         df["swimmer_id"] = swimmer_id
         df["source"] = "usa_swimming"
-        
+
         return df
 
     def validate_team_id(self, team_id: str) -> bool:
         """Validate USA Swimming team ID format.
-        
+
         Args:
             team_id: Team code (e.g., "AZ-SHS" or "06281")
-        
+
         Returns:
             True if format looks valid
         """

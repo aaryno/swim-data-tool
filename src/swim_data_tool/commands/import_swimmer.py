@@ -5,7 +5,6 @@ from datetime import datetime
 from pathlib import Path
 
 from rich.console import Console
-from rich.prompt import IntPrompt
 
 from swim_data_tool.api import USASwimmingAPI
 

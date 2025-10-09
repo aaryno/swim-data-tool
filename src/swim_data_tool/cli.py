@@ -97,9 +97,9 @@ def config(ctx: click.Context) -> None:
 )
 @click.pass_context
 def roster(
-    ctx: click.Context, 
-    source: str | None, 
-    seasons: tuple[str, ...], 
+    ctx: click.Context,
+    source: str | None,
+    seasons: tuple[str, ...],
     start_season: str | None,
     end_season: str | None,
     output: str | None
@@ -150,7 +150,11 @@ def import_swimmer(ctx: click.Context, person_key: int) -> None:
     type=click.Choice(["usa_swimming", "maxpreps"], case_sensitive=False),
     help="Data source (default: usa_swimming)",
 )
-@click.option("--file", type=click.Path(exists=True), help="CSV file with swimmer IDs (default: data/lookups/roster-{source}.csv)")
+@click.option(
+    "--file",
+    type=click.Path(exists=True),
+    help="CSV file with swimmer IDs (default: data/lookups/roster-{source}.csv)"
+)
 @click.option("--dry-run", is_flag=True, help="Show what would be downloaded")
 @click.option("--force", is_flag=True, help="Re-download all swimmers (overwrite existing files)")
 @click.pass_context
@@ -217,7 +221,8 @@ def classify_unattached(
         swim-data-tool classify unattached
 
         # Non-interactive with flags:
-        swim-data-tool classify unattached --high-school=exclude --probationary=include --college=exclude --misc-unattached=exclude
+        swim-data-tool classify unattached --high-school=exclude \\
+            --probationary=include --college=exclude --misc-unattached=exclude
     """
     from swim_data_tool.commands.classify import ClassifyUnattachedCommand
 

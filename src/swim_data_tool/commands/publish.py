@@ -8,7 +8,6 @@ from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Confirm
 
 console = Console()
 
@@ -78,7 +77,7 @@ class PublishCommand:
 
         # Setup local repo
         local_repo = Path(self.public_repo_local)
-        
+
         if not local_repo.exists():
             console.print("[cyan]📦 Cloning repository...[/cyan]")
             if not self.dry_run:
@@ -91,7 +90,7 @@ class PublishCommand:
                     )
                     console.print("[green]✓[/green] Repository cloned\n")
                 except subprocess.CalledProcessError as e:
-                    console.print(f"[red]❌ Failed to clone repository:[/red]")
+                    console.print("[red]❌ Failed to clone repository:[/red]")
                     console.print(f"[dim]{e.stderr}[/dim]")
                     return
             else:
@@ -108,7 +107,7 @@ class PublishCommand:
                     )
                     console.print("[green]✓[/green] Repository updated\n")
                 except subprocess.CalledProcessError as e:
-                    console.print(f"[yellow]⚠️  Failed to pull:[/yellow]")
+                    console.print("[yellow]⚠️  Failed to pull:[/yellow]")
                     console.print(f"[dim]{e.stderr}[/dim]")
                     console.print("[yellow]Continuing anyway...[/yellow]\n")
             else:
@@ -116,35 +115,35 @@ class PublishCommand:
 
         # Copy records
         console.print("[cyan]📋 Copying records...[/cyan]")
-        
+
         # Count files to copy
         files_to_copy = list(self.records_dir.rglob("*.md"))
         console.print(f"[cyan]Found {len(files_to_copy)} markdown files[/cyan]")
-        
+
         if not self.dry_run:
             # Create records directory in public repo
             public_records_dir = local_repo / "records"
             public_records_dir.mkdir(exist_ok=True)
-            
+
             # Copy all markdown files
             for src_file in files_to_copy:
                 # Get relative path from records dir
                 rel_path = src_file.relative_to(self.records_dir)
                 dest_file = public_records_dir / rel_path
-                
+
                 # Create parent directories
                 dest_file.parent.mkdir(parents=True, exist_ok=True)
-                
+
                 # Copy file
                 shutil.copy2(src_file, dest_file)
-            
+
             console.print(f"[green]✓[/green] Copied {len(files_to_copy)} files\n")
-            
+
             # Generate README.md
             console.print("[cyan]📝 Creating README.md...[/cyan]")
             readme_path = local_repo / "README.md"
             self._generate_readme(readme_path, files_to_copy)
-            console.print(f"[green]✓[/green] README.md created\n")
+            console.print("[green]✓[/green] README.md created\n")
         else:
             console.print("[dim]Would copy files to public repo[/dim]\n")
             for src_file in files_to_copy[:5]:  # Show first 5
@@ -158,7 +157,7 @@ class PublishCommand:
         # Git operations
         if not self.dry_run:
             console.print("[cyan]📝 Committing changes...[/cyan]")
-            
+
             try:
                 # Add all changes
                 subprocess.run(
@@ -167,7 +166,7 @@ class PublishCommand:
                     capture_output=True,
                     text=True,
                 )
-                
+
                 # Check if there are changes
                 result = subprocess.run(
                     ["git", "-C", str(local_repo), "status", "--porcelain"],
@@ -175,7 +174,7 @@ class PublishCommand:
                     capture_output=True,
                     text=True,
                 )
-                
+
                 if not result.stdout.strip():
                     console.print("[yellow]⚠️  No changes to commit[/yellow]")
                     console.print("[dim]Records are already up to date[/dim]\n")
@@ -183,15 +182,15 @@ class PublishCommand:
                     # Commit
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
                     commit_message = f"Update records - {timestamp}"
-                    
+
                     subprocess.run(
                         ["git", "-C", str(local_repo), "commit", "-m", commit_message],
                         check=True,
                         capture_output=True,
                         text=True,
                     )
-                    console.print(f"[green]✓[/green] Changes committed\n")
-                    
+                    console.print("[green]✓[/green] Changes committed\n")
+
                     # Push
                     console.print("[cyan]🚀 Pushing to GitHub...[/cyan]")
                     subprocess.run(
@@ -201,9 +200,9 @@ class PublishCommand:
                         text=True,
                     )
                     console.print("[green]✓[/green] Records published!\n")
-                    
+
             except subprocess.CalledProcessError as e:
-                console.print(f"[red]❌ Git operation failed:[/red]")
+                console.print("[red]❌ Git operation failed:[/red]")
                 console.print(f"[dim]{e.stderr}[/dim]")
                 return
         else:
@@ -211,10 +210,10 @@ class PublishCommand:
 
         # Summary
         console.print("[bold green]✓ Publish Complete![/bold green]\n")
-        
+
         # Show next steps
         repo_url_display = self.public_repo_url.replace(".git", "")
-        
+
         next_steps = f"""1. View published records:
    {repo_url_display}
 
@@ -226,7 +225,7 @@ class PublishCommand:
 
 3. Share the link:
    Send {repo_url_display} to your team!"""
-        
+
         console.print(Panel(
             next_steps,
             title="Next Steps",
@@ -236,7 +235,7 @@ class PublishCommand:
 
     def _generate_readme(self, readme_path: Path, files_to_copy: list[Path]) -> None:
         """Generate README.md for the public repository.
-        
+
         Args:
             readme_path: Path to README.md file
             files_to_copy: List of markdown files being published
@@ -250,20 +249,20 @@ class PublishCommand:
             readme_content = template_content.replace("{DATE}", update_date)
             readme_path.write_text(readme_content)
             return
-        
+
         # Organize files by course and type
         records_by_course = {"scy": [], "lcm": [], "scm": []}
         top10_by_course = {"scy": [], "lcm": [], "scm": []}
         annual_files = []
-        
+
         for file_path in files_to_copy:
             rel_path = file_path.relative_to(self.records_dir)
             parts = rel_path.parts
-            
+
             if len(parts) >= 2:
                 course = parts[0]
                 filename = parts[-1]
-                
+
                 if course in records_by_course:
                     if "top10" in str(rel_path):
                         top10_by_course[course].append(rel_path)
@@ -271,10 +270,10 @@ class PublishCommand:
                         annual_files.append(rel_path)
                     else:
                         records_by_course[course].append(rel_path)
-        
+
         # Generate README content
         update_date = datetime.now().strftime("%B %d, %Y")
-        
+
         readme_content = f"""# {self.team_name} - Swimming Records
 
 ## ⚠️ UNOFFICIAL RECORDS - INTERNAL REVIEW ONLY
@@ -293,13 +292,18 @@ class PublishCommand:
 ## Team Records
 
 """
-        
+
         # Add records by course
         for course in ["scy", "lcm", "scm"]:
             if records_by_course[course]:
-                course_name = {"scy": "Short Course Yards", "lcm": "Long Course Meters", "scm": "Short Course Meters"}[course]
+                course_names = {  # noqa: E501
+                    "scy": "Short Course Yards",
+                    "lcm": "Long Course Meters",
+                    "scm": "Short Course Meters"
+                }
+                course_name = course_names[course]
                 readme_content += f"### {course_name} ({course.upper()})\n\n"
-                
+
                 for file_path in sorted(records_by_course[course]):
                     filename = file_path.name
                     if "boys" in filename:
@@ -308,30 +312,35 @@ class PublishCommand:
                         label = "Girls Records"
                     else:
                         label = "Team Records"
-                    
+
                     readme_content += f"- [{label}](records/{file_path})\n"
-                
+
                 readme_content += "\n"
-        
+
         # Add top 10 if available
         has_top10 = any(top10_by_course.values())
         if has_top10:
             readme_content += "## Top 10 All-Time Lists\n\n"
+            course_names = {  # noqa: E501
+                "scy": "Short Course Yards",
+                "lcm": "Long Course Meters",
+                "scm": "Short Course Meters"
+            }
             for course in ["scy", "lcm", "scm"]:
                 if top10_by_course[course]:
-                    course_name = {"scy": "Short Course Yards", "lcm": "Long Course Meters", "scm": "Short Course Meters"}[course]
+                    course_name = course_names[course]
                     readme_content += f"### {course_name} ({course.upper()})\n\n"
-                    
+
                     # Organize top10 files by gender
                     boys_files = []
                     girls_files = []
-                    
+
                     for file_path in sorted(top10_by_course[course]):
                         if "boys" in str(file_path):
                             boys_files.append(file_path)
                         elif "girls" in str(file_path):
                             girls_files.append(file_path)
-                    
+
                     # Add boys section
                     if boys_files:
                         readme_content += "**Boys:**\n"
@@ -339,7 +348,7 @@ class PublishCommand:
                             event_name = file_path.stem.replace("-", " ").title()
                             readme_content += f"- [{event_name}](records/{file_path})\n"
                         readme_content += "\n"
-                    
+
                     # Add girls section
                     if girls_files:
                         readme_content += "**Girls:**\n"
@@ -347,11 +356,11 @@ class PublishCommand:
                             event_name = file_path.stem.replace("-", " ").title()
                             readme_content += f"- [{event_name}](records/{file_path})\n"
                         readme_content += "\n"
-        
+
         # Add annual summaries if available
         if annual_files:
             readme_content += "## Season Summaries\n\n"
-            
+
             # Organize by year (descending)
             by_year = {}
             for file_path in annual_files:
@@ -361,52 +370,58 @@ class PublishCommand:
                     year = parts[0]
                     course = parts[1]
                     gender = parts[2] if len(parts) >= 3 else ""
-                    
+
                     if year not in by_year:
                         by_year[year] = {"scy": [], "lcm": [], "scm": []}
-                    
+
                     if course in by_year[year]:
                         by_year[year][course].append((gender, file_path))
-            
+
             # Output organized by year
             for year in sorted(by_year.keys(), reverse=True):
                 readme_content += f"### {year} Season\n\n"
-                
+
                 for course in ["scy", "lcm", "scm"]:
                     files = by_year[year].get(course, [])
                     if files:
                         course_name = {"scy": "SCY", "lcm": "LCM", "scm": "SCM"}[course]
                         readme_content += f"**{course_name}:**\n"
-                        
+
                         # Sort by gender (boys, then girls)
                         for gender, file_path in sorted(files):
                             label = gender.capitalize()
                             readme_content += f"- [{label}](records/{file_path})\n"
-                        
+
                         readme_content += "\n"
-            
+
             readme_content += "\n"
-        
+
         # Add footer
         readme_content += f"""---
 
 ## About
 
-This repository contains **UNOFFICIAL** team records for {self.team_name}. All data is sourced from USA Swimming official results.
+This repository contains **UNOFFICIAL** team records for {self.team_name}. All data is sourced from USA Swimming
+official results.
 
 ### ⚠️ Important Disclaimers
 
-**UNOFFICIAL STATUS:** These records are automatically generated and have NOT been verified or approved by club administrators. They are provided for internal team review and analysis only.
+**UNOFFICIAL STATUS:** These records are automatically generated and have NOT been verified or approved by club
+administrators. They are provided for internal team review and analysis only.
 
-**VERIFICATION REQUIRED:** Before using these records for any official purpose, they MUST be reviewed and approved by club administrators.
+**VERIFICATION REQUIRED:** Before using these records for any official purpose, they MUST be reviewed and approved
+by club administrators.
 
-**NO WARRANTY:** These records may contain errors, omissions, or discrepancies. The tool and data are provided "as-is" without warranty of any kind.
+**NO WARRANTY:** These records may contain errors, omissions, or discrepancies. The tool and data are provided
+"as-is" without warranty of any kind.
 
-**INTERNAL USE ONLY:** Not approved for external distribution, official team communications, or meet submissions.
+**INTERNAL USE ONLY:** Not approved for external distribution, official team communications, or meet
+submissions.
 
 ### Privacy & Data
 
-**Privacy:** This repository contains no personally identifiable information (PII). Only team records, times, and public results are included.
+**Privacy:** This repository contains no personally identifiable information (PII). Only team records, times, and
+public results are included.
 
 **Updates:** Records are automatically updated after each meet using [swim-data-tool](https://github.com/aaryno/swim-data-tool).
 
@@ -425,7 +440,7 @@ records/
 
 For questions about these records, please contact the team administrators.
 """
-        
+
         # Write README
         readme_path.write_text(readme_content)
 
