@@ -2,11 +2,11 @@
 
 ## Overview
 
-**swim-data-tool** is a modern Python CLI tool for swim team record management. It provides a unified interface for collecting, processing, and analyzing swim data from USA Swimming and World Aquatics APIs.
+**swim-data-tool** is a modern Python CLI tool for swim team record management. It provides a unified interface for collecting, processing, and analyzing swim data from USA Swimming and MaxPreps.
 
-**Current Version:** 0.9.0
+**Current Version:** 0.12.1
 
-**Status:** ✅ Production-ready with critical bug fixes - Two major roster bugs fixed, improving multi-year roster accuracy and .env configuration loading!
+**Status:** ✅ Production-ready with multi-source support - CI/CD pipeline fully operational, USA Swimming and MaxPreps integration complete, grade-based records for high schools!
 
 **Last Cleanup:** 2025-10-09 - Organized project structure, moved test scripts to scratch/, moved development docs to artifacts/
 
@@ -115,7 +115,7 @@ swim-data-tool/
 
 ---
 
-## Current State (v0.8.1)
+## Current State (v0.12.1)
 
 ### ✅ Fully Implemented Features
 
@@ -323,7 +323,40 @@ swim-data-tool generate records
 
 ## Version History
 
-### v0.9.0 (Current) - 2025-10-08
+### v0.12.1 (Current) - 2025-10-09
+- ✅ **CI/CD Pipeline Fully Operational** - All checks passing (lint, type-check, test)
+- ✅ **Code Quality Improvements**
+  - Fixed 529 ruff linting errors (whitespace, f-strings, imports, line length)
+  - Fixed 56 mypy type checking errors (type annotations, dict types, return types)
+  - Added `pandas-stubs` for better type checking
+  - Updated mypy configuration with overrides for external libraries
+- ✅ **Repository Cleanup** - Organized project structure, moved test scripts to scratch/
+
+### v0.12.0 - 2025-10-09
+- ✅ **Relay Event Filtering** - Fixed relay events appearing in individual top 10 lists
+- ✅ **Custom README Templates** - Publish command supports custom `README-template.md` files
+- ✅ Template survives future publish operations
+
+### v0.11.0 - 2025-10-09
+- ✅ **High School Swimming Support** - Complete MaxPreps pipeline
+- ✅ Dynamic grade assignment based on season sections
+- ✅ Relay data capture from individual athlete pages
+- ✅ AIA State Championship PDF parsing
+- ✅ Grade-based records generation for high school format
+
+### v0.10.0 - 2025-10-08
+- ✅ **Multi-Source Architecture** - Abstract data source layer
+  - `SwimDataSource` abstract base class
+  - `USASwimmingSource` and `MaxPrepsSource` plugins
+  - Source factory pattern for extensibility
+- ✅ **MaxPreps Integration** - Full high school swimming data support
+  - Roster scraping from MaxPreps team pages
+  - Athlete stats scraping with Playwright
+  - Grade level tracking (Freshman, Sophomore, Junior, Senior)
+- ✅ **Season Range Support** - `--start-season` and `--end-season` flags
+- ✅ Roster command now supports `--source` flag
+
+### v0.9.0 - 2025-10-08
 - ✅ **Critical bug fix: Roster command not loading .env** - Fixed roster command to properly load .env configuration
   - Roster command now calls `load_dotenv()` after verifying .env exists
   - Fixed incorrect year ranges (e.g., "20000-2025" → "2000-2025")
@@ -1009,5 +1042,5 @@ console.print(Panel(
 ---
 
 **Last Updated:** 2025-10-09  
-**Version:** 0.9.0  
-**Status:** Production-ready with critical bug fixes (project structure cleaned up)
+**Version:** 0.12.1  
+**Status:** Production-ready with multi-source support - CI/CD pipeline operational, full type checking and linting compliance
