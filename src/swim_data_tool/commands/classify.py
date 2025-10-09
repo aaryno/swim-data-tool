@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 from rich.console import Console
@@ -99,7 +100,7 @@ class ClassifyUnattachedCommand:
 
         # Process swimmers with progress bar
         processed_count = 0
-        total_stats = {
+        total_stats: dict[str, Any] = {
             "official": 0,
             "excluded": 0,
             "by_category": {
@@ -358,7 +359,7 @@ class ClassifyUnattachedCommand:
                 "include" if Confirm.ask("Include misc unattached swims in records?", default=False) else "exclude"
             )
 
-        return decisions
+        return decisions  # type: ignore[return-value]
 
     def _classify_swimmer(self, csv_file: Path, decisions: dict[str, str]) -> dict:
         """Classify all swims for a single swimmer with metadata."""

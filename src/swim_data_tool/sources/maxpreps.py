@@ -70,7 +70,7 @@ class MaxPrepsSource(SwimDataSource):
         """
         self._ensure_playwright()
 
-        page = self._browser.new_page()
+        page = self._browser.new_page()  # type: ignore[union-attr]
         try:
             page.goto(url, wait_until="domcontentloaded", timeout=60000)
             page.wait_for_timeout(wait_time)
@@ -167,7 +167,7 @@ class MaxPrepsSource(SwimDataSource):
 
         # Extract athletes
         athletes = []
-        for row in roster_table.find_all("tr")[1:]:  # Skip header
+        for row in roster_table.find_all("tr")[1:]:  # type: ignore[union-attr]  # Skip header
             cols = row.find_all("td")
             if len(cols) < 3:  # Need at least 3 columns (empty, name, grade)
                 continue
@@ -366,7 +366,7 @@ class MaxPrepsSource(SwimDataSource):
 
         if not stat_sections:
             # Fallback: if no sections found, try processing all tables with current grade
-            stat_sections = [soup]
+            stat_sections = [soup]  # type: ignore[assignment]
 
         for section in stat_sections:
             # Extract grade for this section

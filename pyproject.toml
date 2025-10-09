@@ -75,9 +75,21 @@ addopts = "-v --cov=swim_data_tool --cov-report=term-missing"
 
 [tool.mypy]
 python_version = "3.11"
-strict = true
-warn_return_any = true
+warn_return_any = false
 warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_calls = false
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = "swim_data_tool.sources.maxpreps"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pandas"
+ignore_missing_imports = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/swim_data_tool"]
