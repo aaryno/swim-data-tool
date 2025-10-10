@@ -4,7 +4,7 @@
 
 **swim-data-tool** is a modern Python CLI tool for swim team record management. It provides a unified interface for collecting, processing, and analyzing swim data from USA Swimming and MaxPreps.
 
-**Current Version:** 0.12.1
+**Current Version:** 0.12.2
 
 **Status:** ✅ Production-ready with multi-source support - CI/CD pipeline fully operational, USA Swimming and MaxPreps integration complete, grade-based records for high schools!
 
@@ -115,7 +115,7 @@ swim-data-tool/
 
 ---
 
-## Current State (v0.12.1)
+## Current State (v0.12.2)
 
 ### ✅ Fully Implemented Features
 
@@ -323,7 +323,12 @@ swim-data-tool generate records
 
 ## Version History
 
-### v0.12.1 (Current) - 2025-10-09
+### v0.12.2 (Current) - 2025-10-09
+- ✅ **Package Structure Fix** - Added missing `services/__init__.py` 
+- ✅ **Version Management Modernization** - Using `importlib.metadata` with fallback
+- ✅ **Documentation Updates** - Comprehensive README with badges, updated claude.md
+
+### v0.12.1 - 2025-10-09
 - ✅ **CI/CD Pipeline Fully Operational** - All checks passing (lint, type-check, test)
 - ✅ **Code Quality Improvements**
   - Fixed 529 ruff linting errors (whitespace, f-strings, imports, line length)
@@ -1042,5 +1047,5 @@ console.print(Panel(
 ---
 
 **Last Updated:** 2025-10-09  
-**Version:** 0.12.1  
+**Version:** 0.12.2  
 **Status:** Production-ready with multi-source support - CI/CD pipeline operational, full type checking and linting compliance

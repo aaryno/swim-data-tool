@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.2] - 2025-10-09
+
+### Fixed
+- Added missing `services/__init__.py` to make services directory a proper Python package
+- Modernized version management using `importlib.metadata` with fallback to VERSION file
+
+### Changed
+- Updated README.md with comprehensive tool documentation and GitHub badges
+- Updated claude.md with current version (0.12.1 → 0.12.2) and recent version history
+
 ## [0.12.1] - 2025-10-09
 
 ### Fixed
